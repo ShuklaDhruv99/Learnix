@@ -1,10 +1,11 @@
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Subject, Topic, Profile
-from .services import enroll_user_in_subject
+from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement
+from .services import enroll_user_in_subject, complete_topic
 from django.shortcuts import get_object_or_404
-from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer
+from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer
+from rest_framework.exceptions import ValidationError
 
 
 class SubjectListView(generics.ListAPIView):
@@ -54,3 +55,60 @@ class EnrollView(APIView):
             'subject_id': subject.id,
             'topics_created': created_topic_ids,
         })
+
+class CompleteTopicView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, topic_id):
+        topic = get_object_or_404(Topic, id=topic_id)
+        progress = complete_topic(request.user, topic)
+        return Response({
+            'topic_id': topic.id,
+            'status': progress.status,
+            'completion': progress.completion_pct,
+            'profile_xp': request.user.profile.xp,
+            'profile_level': request.user.profile.level,
+        })
+
+class ResourceListView(generics.ListAPIView):
+    serializer_class = ResourceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        topic_id = self.kwargs['topic_id']
+        return Resource.objects.filter(topic_id=topic_id)
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+
+class BookmarkListCreateView(generics.ListCreateAPIView):
+    serializer_class = BookmarkSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Bookmark.objects.filter(user=self.request.user)
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    def perform_create(self, serializer):
+        resource_id = self.request.data.get('resource')
+        if Bookmark.objects.filter(user=self.request.user, resource_id=resource_id).exists():
+            raise ValidationError('Already bookmarked.')
+        serializer.save(user=self.request.user)
+
+
+class BookmarkDeleteView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Bookmark.objects.filter(user=self.request.user)
+
+class AchievementListView(generics.ListAPIView):
+    queryset = Achievement.objects.all()
+    serializer_class = AchievementSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_context(self):
+        return {'request': self.request}

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Subject, Topic, UserTopicProgress, Profile
+from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookmark, Achievement, UserAchievement
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -61,3 +61,54 @@ class OnboardingSerializer(serializers.ModelSerializer):
             'education_type', 'board', 'medium', 'class_name', 'stream',
             'university', 'branch', 'semester', 'goal_mode', 'onboarding_completed',
         ]
+
+class ResourceSerializer(serializers.ModelSerializer):
+    is_bookmarked = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Resource
+        fields = [
+            'id', 'topic', 'title', 'type', 'platform', 'creator', 'url',
+            'duration', 'views', 'rating', 'difficulty', 'thumbnail_color',
+            'is_bookmarked',
+        ]
+
+    def get_is_bookmarked(self, obj):
+        user = self.context['request'].user
+        return Bookmark.objects.filter(user=user, resource=obj).exists()
+
+
+class BookmarkSerializer(serializers.ModelSerializer):
+    resource_detail = ResourceSerializer(source='resource', read_only=True)
+
+    class Meta:
+        model = Bookmark
+        fields = ['id', 'resource', 'resource_detail', 'created_at']
+
+class AchievementSerializer(serializers.ModelSerializer):
+    unlocked = serializers.SerializerMethodField()
+    progress_pct = serializers.SerializerMethodField()
+    unlocked_date = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Achievement
+        fields = [
+            'id', 'name', 'description', 'icon', 'tier', 'xp_reward',
+            'unlocked', 'progress_pct', 'unlocked_date',
+        ]
+
+    def get_user_achievement(self, obj):
+        user = self.context['request'].user
+        return UserAchievement.objects.filter(user=user, achievement=obj).first()
+
+    def get_unlocked(self, obj):
+        ua = self.get_user_achievement(obj)
+        return ua.unlocked if ua else False
+
+    def get_progress_pct(self, obj):
+        ua = self.get_user_achievement(obj)
+        return ua.progress_pct if ua else 0
+
+    def get_unlocked_date(self, obj):
+        ua = self.get_user_achievement(obj)
+        return ua.unlocked_date if ua else None
