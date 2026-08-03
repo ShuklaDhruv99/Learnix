@@ -1,0 +1,46 @@
+{
+  "weeklyStudyTime": [
+    { "day": "Mon", "hours": 1.5 },
+    { "day": "Tue", "hours": 2.2 },
+    { "day": "Wed", "hours": 0.8 },
+    { "day": "Thu", "hours": 2.6 },
+    { "day": "Fri", "hours": 1.9 },
+    { "day": "Sat", "hours": 3.4 },
+    { "day": "Sun", "hours": 1.8 }
+  ],
+  "xpTimeline": [
+    { "date": "Wk 1", "xp": 420 },
+    { "date": "Wk 2", "xp": 980 },
+    { "date": "Wk 3", "xp": 1640 },
+    { "date": "Wk 4", "xp": 2510 },
+    { "date": "Wk 5", "xp": 3380 },
+    { "date": "Wk 6", "xp": 4460 },
+    { "date": "Wk 7", "xp": 5720 },
+    { "date": "Wk 8", "xp": 6890 },
+    { "date": "Wk 9", "xp": 8420 }
+  ],
+  "subjectComparison": [
+    { "subject": "Python", "hours": 33 },
+    { "subject": "DSA", "hours": 32 },
+    { "subject": "DBMS", "hours": 28 },
+    { "subject": "React", "hours": 8 },
+    { "subject": "OS", "hours": 29 },
+    { "subject": "Java", "hours": 5 }
+  ],
+  "completionRadar": [
+    { "subject": "Python", "value": 78 },
+    { "subject": "DSA", "value": 54 },
+    { "subject": "DBMS", "value": 91 },
+    { "subject": "React", "value": 22 },
+    { "subject": "OS", "value": 63 },
+    { "subject": "Java", "value": 12 }
+  ],
+  "dailyActivityHeatmap": [
+    2, 3, 1, 4, 2, 0, 1, 3, 4, 2, 1, 0, 3, 4,
+    2, 1, 3, 4, 2, 0, 1, 2, 3, 4, 1, 0, 2, 3,
+    4, 2, 1, 0, 3, 4, 2, 1, 3, 2, 0, 1, 4, 3,
+    2, 1, 0, 2, 3, 4, 1, 2, 0, 3, 4, 1, 2, 3,
+    1, 2, 0, 1, 3, 4, 2
+  ],
+  "completionRate": 62
+}

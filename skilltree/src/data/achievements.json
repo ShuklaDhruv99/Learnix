@@ -1,0 +1,14 @@
+[
+  { "id": "a1", "name": "First Topic", "description": "Complete your very first topic.", "icon": "Footprints", "tier": "bronze", "unlocked": true, "unlockedDate": "2025-02-12", "xpReward": 50 },
+  { "id": "a2", "name": "7 Day Streak", "description": "Study for 7 days in a row without missing one.", "icon": "Flame", "tier": "silver", "unlocked": true, "unlockedDate": "2025-03-02", "xpReward": 150 },
+  { "id": "a3", "name": "Python Master", "description": "Reach 100% completion in Python Programming.", "icon": "Code2", "tier": "gold", "unlocked": false, "progress": 78, "xpReward": 400 },
+  { "id": "a4", "name": "Semester Slayer", "description": "Complete every subject scheduled for your current semester.", "icon": "Swords", "tier": "gold", "unlocked": false, "progress": 52, "xpReward": 600 },
+  { "id": "a5", "name": "Topper", "description": "Finish a full syllabus in Topper Mode.", "icon": "Trophy", "tier": "platinum", "unlocked": false, "progress": 34, "xpReward": 1000 },
+  { "id": "a6", "name": "React Warrior", "description": "Defeat the Next.js boss node in the React skill tree.", "icon": "Sword", "tier": "gold", "unlocked": false, "progress": 22, "xpReward": 500 },
+  { "id": "a7", "name": "Completionist", "description": "Reach 100% completion across all enrolled subjects.", "icon": "Gem", "tier": "platinum", "unlocked": false, "progress": 53, "xpReward": 1200 },
+  { "id": "a8", "name": "30 Day Streak", "description": "Study for 30 consecutive days.", "icon": "CalendarCheck", "tier": "gold", "unlocked": false, "progress": 40, "xpReward": 500 },
+  { "id": "a9", "name": "Night Owl", "description": "Complete 10 topics after 11 PM.", "icon": "Moon", "tier": "bronze", "unlocked": true, "unlockedDate": "2025-04-19", "xpReward": 100 },
+  { "id": "a10", "name": "Bookworm", "description": "Bookmark 25 resources.", "icon": "BookMarked", "tier": "silver", "unlocked": false, "progress": 60, "xpReward": 150 },
+  { "id": "a11", "name": "Perfectionist", "description": "Score 100% on 5 practice question sets.", "icon": "Target", "tier": "silver", "unlocked": true, "unlockedDate": "2025-05-08", "xpReward": 200 },
+  { "id": "a12", "name": "Speed Runner", "description": "Complete a topic in under half its estimated time.", "icon": "Rocket", "tier": "bronze", "unlocked": true, "unlockedDate": "2025-03-21", "xpReward": 120 }
+]

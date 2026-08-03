@@ -1,0 +1,17 @@
+# Backend (Django/Python)
+skilltree-backend/venv/
+skilltree-backend/**/.env
+skilltree-backend/**/__pycache__/
+*.pyc
+skilltree-backend/core/db.sqlite3
+
+# Frontend (Node/Vite)
+skilltree/node_modules/
+skilltree/dist/
+skilltree/.env
+
+# Editor/OS junk
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
