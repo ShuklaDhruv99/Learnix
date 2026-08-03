@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress
 from .services import enroll_user_in_subject, complete_topic
 from django.shortcuts import get_object_or_404
-from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer
+from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer
 from rest_framework.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
@@ -182,3 +182,20 @@ class DashboardView(APIView):
                 'streak_days': profile.streak_days,
             },
         })
+
+class LeaderboardView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        profiles = Profile.objects.select_related('user').order_by('-total_xp')[:50]
+        data = [
+            {
+                'username': p.user.username,
+                'level': p.level,
+                'total_xp': p.total_xp,
+                'rank': i + 1,
+            }
+            for i, p in enumerate(profiles)
+        ]
+        serializer = LeaderboardEntrySerializer(data, many=True)
+        return Response(serializer.data)

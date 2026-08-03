@@ -119,3 +119,9 @@ class StudySessionSerializer(serializers.ModelSerializer):
         model = StudySession
         fields = ['id', 'topic', 'minutes', 'date', 'created_at']
         read_only_fields = ['created_at']
+
+class LeaderboardEntrySerializer(serializers.Serializer):
+    username = serializers.CharField()
+    level = serializers.IntegerField()
+    total_xp = serializers.IntegerField()
+    rank = serializers.IntegerField()

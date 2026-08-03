@@ -19,6 +19,7 @@ class Profile(models.Model):
     # Gamification
     level = models.PositiveIntegerField(default=1)
     xp = models.PositiveIntegerField(default=0)
+    total_xp = models.PositiveIntegerField(default=0)
     coins = models.PositiveIntegerField(default=0)
     streak_days = models.PositiveIntegerField(default=0)
     last_activity_date = models.DateField(null=True, blank=True)

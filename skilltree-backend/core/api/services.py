@@ -7,6 +7,7 @@ def xp_required_for_level(level):
 
 def award_xp(profile, amount):
     profile.xp += amount
+    profile.total_xp += amount
     while profile.xp >= xp_required_for_level(profile.level):
         profile.xp -= xp_required_for_level(profile.level)
         profile.level += 1
