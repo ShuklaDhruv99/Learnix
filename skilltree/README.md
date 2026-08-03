@@ -1,4 +1,4 @@
-# SkillTree
+# Learnix
 
 Turn your syllabus into an interactive, RPG-style learning journey. A premium, frontend-only React app — landing page, onboarding wizard, gamified dashboard, and a React Flow skill tree with XP, levels, and achievements. Everything runs on mock data, no backend required.
 

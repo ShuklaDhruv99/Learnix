@@ -65,7 +65,7 @@ export default function Landing() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-bright to-blue flex items-center justify-center shadow-glow-emerald">
               <Sparkles className="w-4.5 h-4.5 text-base-950" />
             </div>
-            <span className="font-display font-bold text-lg tracking-tight">SkillTree</span>
+            <span className="font-display font-bold text-lg tracking-tight">Learnix</span>
           </div>
           <nav className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
@@ -133,7 +133,7 @@ export default function Landing() {
       {/* Features */}
       <section id="features" className="relative max-w-7xl mx-auto px-5 sm:px-8 py-20 sm:py-28">
         <motion.div variants={fadeUp} initial="hidden" whileInView="show" viewport={{ once: true }} className="max-w-xl mb-14">
-          <span className="text-xs font-mono text-emerald-bright uppercase tracking-widest">Why SkillTree</span>
+          <span className="text-xs font-mono text-emerald-bright uppercase tracking-widest">Why Learnix</span>
           <h2 className="font-display font-bold text-3xl sm:text-4xl mt-3">Everything a syllabus should have been.</h2>
         </motion.div>
         <motion.div
@@ -253,7 +253,7 @@ export default function Landing() {
               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-bright to-blue flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-base-950" />
               </div>
-              <span className="font-display font-bold">SkillTree</span>
+              <span className="font-display font-bold">Learnix</span>
             </div>
             <p className="text-xs text-white/35 leading-relaxed">Your syllabus, turned into a game worth finishing.</p>
           </div>
@@ -275,7 +275,7 @@ export default function Landing() {
           ))}
         </div>
         <div className="border-t border-white/[0.06] py-5 text-center text-xs text-white/25">
-          © 2026 SkillTree. Built for students who'd rather level up than burn out.
+          © 2026 Learnix. Built for students who'd rather level up than burn out.
         </div>
       </footer>
     </div>

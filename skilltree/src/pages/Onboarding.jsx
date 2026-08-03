@@ -88,7 +88,7 @@ export default function Onboarding() {
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-bright to-blue flex items-center justify-center">
             <Sparkles className="w-4.5 h-4.5 text-base-950" />
           </div>
-          <span className="font-display font-bold">SkillTree</span>
+          <span className="font-display font-bold">Learnix</span>
         </div>
         <div className="flex items-center gap-1.5">
           {steps.map((s, i) => (

@@ -82,7 +82,7 @@ export default function SettingsPage() {
           <h3 className="font-display font-semibold mb-1 flex items-center gap-2">
             <Moon className="w-4.5 h-4.5 text-blue-bright" /> Appearance
           </h3>
-          <ToggleRow icon={Moon} title="Dark Mode" desc="SkillTree is designed dark-first." checked={darkMode} onChange={setDarkMode} />
+          <ToggleRow icon={Moon} title="Dark Mode" desc="Learnix is designed dark-first." checked={darkMode} onChange={setDarkMode} />
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0">

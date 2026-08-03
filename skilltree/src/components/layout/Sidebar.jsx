@@ -35,7 +35,7 @@ function SidebarContent({ onNavigate }) {
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-bright to-blue flex items-center justify-center shadow-glow-emerald">
           <Sparkles className="w-4.5 h-4.5 text-base-950" />
         </div>
-        <span className="font-display font-bold text-lg tracking-tight">SkillTree</span>
+        <span className="font-display font-bold text-lg tracking-tight">Learnix</span>
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
