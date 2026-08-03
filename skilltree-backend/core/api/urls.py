@@ -2,7 +2,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     SubjectListView, TopicListView, RegisterView, OnboardingView, EnrollView, CompleteTopicView, ResourceListView,
-    BookmarkListCreateView, BookmarkDeleteView, AchievementListView
+    BookmarkListCreateView, BookmarkDeleteView, AchievementListView, StudySessionCreateView, DashboardView
 )
 
 urlpatterns = [
@@ -18,4 +18,6 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('onboarding/', OnboardingView.as_view(), name='onboarding'),
     path('achievements/', AchievementListView.as_view(), name='achievement-list'),
+    path('study-sessions/', StudySessionCreateView.as_view(), name='study-session-create'),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
 ]

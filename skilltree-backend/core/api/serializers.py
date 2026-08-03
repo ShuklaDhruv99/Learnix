@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookmark, Achievement, UserAchievement
+from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -60,6 +60,7 @@ class OnboardingSerializer(serializers.ModelSerializer):
         fields = [
             'education_type', 'board', 'medium', 'class_name', 'stream',
             'university', 'branch', 'semester', 'goal_mode', 'onboarding_completed',
+            'daily_goal_minutes', 'weekly_goal_minutes',
         ]
 
 class ResourceSerializer(serializers.ModelSerializer):
@@ -112,3 +113,9 @@ class AchievementSerializer(serializers.ModelSerializer):
     def get_unlocked_date(self, obj):
         ua = self.get_user_achievement(obj)
         return ua.unlocked_date if ua else None
+
+class StudySessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StudySession
+        fields = ['id', 'topic', 'minutes', 'date', 'created_at']
+        read_only_fields = ['created_at']

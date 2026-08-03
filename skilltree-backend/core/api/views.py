@@ -1,11 +1,14 @@
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement
+from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress
 from .services import enroll_user_in_subject, complete_topic
 from django.shortcuts import get_object_or_404
-from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer
+from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer
 from rest_framework.exceptions import ValidationError
+from datetime import timedelta
+from django.utils import timezone
+from django.db.models import Sum
 
 
 class SubjectListView(generics.ListAPIView):
@@ -112,3 +115,70 @@ class AchievementListView(generics.ListAPIView):
 
     def get_serializer_context(self):
         return {'request': self.request}
+
+class StudySessionCreateView(generics.CreateAPIView):
+    serializer_class = StudySessionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class DashboardView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        profile = user.profile
+
+        today = timezone.now().date()
+        week_start = today - timedelta(days=today.weekday())  # Monday of this week
+
+        mission_progress = (
+            UserTopicProgress.objects.filter(user=user, status='current').first()
+            or UserTopicProgress.objects.filter(user=user, status='unlocked').first()
+        )
+        todays_mission = None
+        if mission_progress:
+            todays_mission = {
+                'topic_id': mission_progress.topic.id,
+                'topic_name': mission_progress.topic.name,
+                'subject_name': mission_progress.topic.subject.name,
+                'xp_reward': mission_progress.topic.xp,
+            }
+
+        weekly_minutes = StudySession.objects.filter(
+            user=user, date__gte=week_start, date__lte=today
+        ).aggregate(total=Sum('minutes'))['total'] or 0
+
+        total_topics = UserTopicProgress.objects.filter(user=user).count()
+        completed_topics = UserTopicProgress.objects.filter(user=user, status='completed').count()
+        overall_progress = round((completed_topics / total_topics) * 100) if total_topics > 0 else 0
+
+        recent = UserTopicProgress.objects.filter(
+            user=user, status='completed'
+        ).order_by('-completed_on')[:5]
+        recently_completed = [
+            {
+                'topic_id': r.topic.id,
+                'topic_name': r.topic.name,
+                'subject_name': r.topic.subject.name,
+                'completed_on': r.completed_on,
+                'xp': r.topic.xp,
+            }
+            for r in recent
+        ]
+
+        return Response({
+            'todays_mission': todays_mission,
+            'overall_progress': overall_progress,
+            'daily_goal_minutes': profile.daily_goal_minutes,
+            'weekly_goal_minutes': profile.weekly_goal_minutes,
+            'weekly_progress_minutes': weekly_minutes,
+            'recently_completed': recently_completed,
+            'profile': {
+                'level': profile.level,
+                'xp': profile.xp,
+                'xp_to_next_level': profile.level * 1000 - profile.xp,
+                'streak_days': profile.streak_days,
+            },
+        })

@@ -40,6 +40,8 @@ class Profile(models.Model):
     avatar_color = models.CharField(max_length=20,default='emerald')
 
     created_at = models.DateTimeField(auto_now_add=True)
+    daily_goal_minutes = models.PositiveIntegerField(default=60)
+    weekly_goal_minutes = models.PositiveIntegerField(default=420)
 
     def __str__(self):
         return self.user.username
@@ -182,3 +184,13 @@ class UserAchievement(models.Model):
     def __str__(self):
         status = "unlocked" if self.unlocked else f"{self.progress_pct}%"
         return f"{self.user.username} - {self.achievement.name} ({status})"
+
+class StudySession(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='study_sessions')
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='study_sessions', null=True, blank=True)
+    minutes = models.PositiveIntegerField()
+    date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.minutes}min on {self.date}"
