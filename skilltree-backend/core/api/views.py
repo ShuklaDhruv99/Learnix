@@ -9,6 +9,8 @@ from rest_framework.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Sum
+from pypdf import PdfReader
+from rest_framework.parsers import MultiPartParser
 
 
 class SubjectListView(generics.ListAPIView):
@@ -199,3 +201,27 @@ class LeaderboardView(APIView):
         ]
         serializer = LeaderboardEntrySerializer(data, many=True)
         return Response(serializer.data)
+
+class SyllabusExtractView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No file uploaded.'}, status=400)
+
+        try:
+            reader = PdfReader(file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() or ""
+        except Exception as e:
+            return Response({'error': f'Failed to read PDF: {str(e)}'}, status=400)
+
+        return Response({
+            'filename': file.name,
+            'page_count': len(reader.pages),
+            'char_count': len(text),
+            'preview': text[:500],
+        })
