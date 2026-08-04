@@ -1,10 +1,20 @@
-import { createContext, useContext, useMemo, useState } from 'react'
-import studentData from '../data/student.json'
+import { createContext, useContext, useMemo, useState, useEffect } from 'react'
+import { apiRequest, login as apiLogin, register as apiRegister, clearTokens, isLoggedIn, setCurrentUsername, getCurrentUsername } from '../api/client'
 
 const AppContext = createContext(null)
 
 export function AppProvider({ children }) {
-  const [student] = useState(studentData)
+  const [isAuthenticated, setIsAuthenticated] = useState(isLoggedIn())
+  const [currentUser, setCurrentUser] = useState(() => {
+  const username = getCurrentUsername()
+  return username ? { username } : null
+})
+  const [authLoading, setAuthLoading] = useState(false)
+  const [authError, setAuthError] = useState(null)
+
+  const [dashboard, setDashboard] = useState(null)
+  const [dashboardLoading, setDashboardLoading] = useState(false)
+
   const [onboarding, setOnboarding] = useState({
     learnerType: null,
     board: null,
@@ -20,9 +30,77 @@ export function AppProvider({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
+  async function refreshDashboard() {
+    setDashboardLoading(true)
+    try {
+      const data = await apiRequest('/dashboard/')
+      setDashboard(data)
+    } catch (err) {
+      console.error('Failed to load dashboard', err)
+    } finally {
+      setDashboardLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshDashboard()
+    } else {
+      setDashboard(null)
+    }
+  }, [isAuthenticated])
+
+  async function login(username, password) {
+    setAuthLoading(true)
+    setAuthError(null)
+    try {
+      await apiLogin(username, password)
+      setCurrentUsername(username)
+      setIsAuthenticated(true)
+      setCurrentUser({ username })
+      return true
+    } catch (err) {
+      setAuthError(err?.data?.detail || 'Login failed. Check your username and password.')
+      return false
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  async function register(username, email, password) {
+    setAuthLoading(true)
+    setAuthError(null)
+    try {
+      await apiRegister(username, email, password)
+      return await login(username, password)
+    } catch (err) {
+      const detail = err?.data?.username?.[0] || err?.data?.password?.[0] || 'Registration failed.'
+      setAuthError(detail)
+      return false
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  function logout() {
+    clearTokens()
+    setIsAuthenticated(false)
+    setCurrentUser(null)
+    setDashboard(null)
+  }
+
   const value = useMemo(
     () => ({
-      student,
+      isAuthenticated,
+      currentUser,
+      authLoading,
+      authError,
+      login,
+      register,
+      logout,
+      dashboard,
+      dashboardLoading,
+      refreshDashboard,
       onboarding,
       setOnboarding,
       sidebarOpen,
@@ -30,7 +108,7 @@ export function AppProvider({ children }) {
       mobileNavOpen,
       setMobileNavOpen,
     }),
-    [student, onboarding, sidebarOpen, mobileNavOpen]
+    [isAuthenticated, currentUser, authLoading, authError, dashboard, dashboardLoading, onboarding, sidebarOpen, mobileNavOpen]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

@@ -2,8 +2,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AppProvider } from './contexts/AppContext'
 import PublicLayout from './layouts/PublicLayout'
 import DashboardLayout from './layouts/DashboardLayout'
+import ProtectedRoute from './components/common/ProtectedRoute'
 
 import Landing from './pages/Landing'
+import Login from './pages/Login'
+import Register from './pages/Register'
 import Onboarding from './pages/Onboarding'
 import Dashboard from './pages/Dashboard'
 import Subjects from './pages/Subjects'
@@ -23,10 +26,12 @@ export default function App() {
         <Routes>
           <Route element={<PublicLayout />}>
             <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/onboarding" element={<Onboarding />} />
           </Route>
 
-          <Route element={<DashboardLayout />}>
+          <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route path="/app" element={<Dashboard />} />
             <Route path="/app/subjects" element={<Subjects />} />
             <Route path="/app/skill-tree" element={<SkillTree />} />
