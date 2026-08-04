@@ -1,10 +1,10 @@
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress
+from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress, ChatMessage
 from .services import enroll_user_in_subject, complete_topic
 from django.shortcuts import get_object_or_404
-from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer
+from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer, ChatMessageSerializer
 from rest_framework.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
@@ -12,6 +12,7 @@ from django.db.models import Sum
 from pypdf import PdfReader
 from rest_framework.parsers import MultiPartParser
 from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree
+from .tutor_service import get_tutor_response
 
 
 class SubjectListView(generics.ListAPIView):
@@ -276,3 +277,29 @@ class SyllabusGenerateView(APIView):
             'subject_name': subject.name,
             'topic_count': subject.topics.count(),
         }, status=201)
+
+class TopicChatView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, topic_id):
+        """Fetch conversation history for this user + topic."""
+        topic = get_object_or_404(Topic, id=topic_id)
+        messages = ChatMessage.objects.filter(user=request.user, topic=topic)
+        serializer = ChatMessageSerializer(messages, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, topic_id):
+        """Send a message, get the tutor's reply."""
+        topic = get_object_or_404(Topic, id=topic_id)
+        user_message = request.data.get('message')
+        if not user_message:
+            return Response({'error': 'message field is required.'}, status=400)
+
+        progress = UserTopicProgress.objects.filter(user=request.user, topic=topic).first()
+
+        try:
+            reply = get_tutor_response(request.user, topic, progress, user_message)
+        except Exception as e:
+            return Response({'error': f'Tutor failed to respond: {str(e)}'}, status=502)
+
+        return Response({'reply': reply})

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession
+from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, ChatMessage
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -125,3 +125,8 @@ class LeaderboardEntrySerializer(serializers.Serializer):
     level = serializers.IntegerField()
     total_xp = serializers.IntegerField()
     rank = serializers.IntegerField()
+
+class ChatMessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMessage
+        fields = ['id', 'role', 'content', 'created_at']

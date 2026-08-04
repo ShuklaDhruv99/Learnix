@@ -3,7 +3,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     SubjectListView, TopicListView, RegisterView, OnboardingView, EnrollView, CompleteTopicView, ResourceListView,
     BookmarkListCreateView, BookmarkDeleteView, AchievementListView, StudySessionCreateView, DashboardView, LeaderboardView,
-    SyllabusExtractView, SyllabusGenerateView
+    SyllabusExtractView, SyllabusGenerateView, TopicChatView
 )
 
 urlpatterns = [
@@ -24,4 +24,5 @@ urlpatterns = [
     path('leaderboard/', LeaderboardView.as_view(), name='leaderboard'),
     path('syllabus/extract-test/', SyllabusExtractView.as_view(), name='syllabus-extract-test'),
     path('syllabus/generate/', SyllabusGenerateView.as_view(), name='syllabus-generate'),
+    path('topics/<int:topic_id>/chat/', TopicChatView.as_view(), name='topic-chat'),
 ]
