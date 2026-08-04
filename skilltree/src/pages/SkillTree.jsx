@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   ReactFlow,
   Background,
@@ -14,7 +15,63 @@ import { GitBranch, Crown, Circle } from 'lucide-react'
 import SkillNode from '../components/skilltree/SkillNode'
 import TopicDrawer from '../components/skilltree/TopicDrawer'
 import Breadcrumb from '../components/common/Breadcrumb'
-import topicsData from '../data/topics.json'
+import { useApp } from '../contexts/AppContext'
+
+const HORIZONTAL_SPACING = 220
+const VERTICAL_SPACING = 160
+
+function computeAutoLayout(topics) {
+  const byId = Object.fromEntries(topics.map((t) => [t.id, t]))
+  const depthCache = {}
+
+  function getDepth(id, visiting = new Set()) {
+    if (depthCache[id] !== undefined) return depthCache[id]
+    if (visiting.has(id)) return 0 // safety: cyclic guard, shouldn't happen post-validation
+    visiting.add(id)
+
+    const topic = byId[id]
+    if (!topic || topic.prerequisites.length === 0) {
+      depthCache[id] = 0
+      return 0
+    }
+    const maxPrereqDepth = Math.max(...topic.prerequisites.map((p) => getDepth(p, visiting)))
+    depthCache[id] = maxPrereqDepth + 1
+    return depthCache[id]
+  }
+
+  const depths = {}
+  topics.forEach((t) => {
+    depths[t.id] = getDepth(t.id)
+  })
+
+  // Group topic ids by depth
+  const layers = {}
+  topics.forEach((t) => {
+    const d = depths[t.id]
+    if (!layers[d]) layers[d] = []
+    layers[d].push(t.id)
+  })
+
+  const positions = {}
+  Object.entries(layers).forEach(([depth, ids]) => {
+    const count = ids.length
+    const totalWidth = (count - 1) * HORIZONTAL_SPACING
+    const startX = -totalWidth / 2
+    ids.forEach((id, i) => {
+      positions[id] = {
+        x: startX + i * HORIZONTAL_SPACING,
+        y: Number(depth) * VERTICAL_SPACING,
+      }
+    })
+  })
+
+  return positions
+}
+
+function hasMeaningfulPositions(topics) {
+  // If every topic sits at exactly (0,0), treat positions as unset
+  return topics.some((t) => t.position_x !== 0 || t.position_y !== 0)
+}
 
 const nodeTypes = { skillNode: SkillNode }
 
@@ -26,20 +83,49 @@ const EDGE_COLOR = {
 }
 
 export default function SkillTree() {
+  const [searchParams] = useSearchParams()
+  const subjectId = searchParams.get('subject')
+  const { fetchTopics, subjects } = useApp()
+
+  const [topicsData, setTopicsData] = useState([])
+  const [loading, setLoading] = useState(true)
   const [openTopicId, setOpenTopicId] = useState(null)
+
+  const subject = subjects.find((s) => String(s.id) === String(subjectId))
+
+  function loadTopics(showLoading = true) {
+    if (!subjectId) return
+    if (showLoading) setLoading(true)
+    return fetchTopics(subjectId)
+      .then((data) => {
+        const useStoredPositions = hasMeaningfulPositions(data)
+        const autoPositions = useStoredPositions ? null : computeAutoLayout(data)
+        const mapped = data.map((t) => ({
+          ...t,
+          position: useStoredPositions ? { x: t.position_x, y: t.position_y } : autoPositions[t.id],
+        }))
+        setTopicsData(mapped)
+      })
+      .catch((err) => console.error('Failed to load topics', err))
+      .finally(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    loadTopics()
+  }, [subjectId])
 
   const handleOpen = useCallback((id) => setOpenTopicId(id), [])
 
   const initialNodes = useMemo(
     () =>
       topicsData.map((t) => ({
-        id: t.id,
+        id: String(t.id),
         type: 'skillNode',
         position: t.position,
         data: { ...t, onOpen: handleOpen },
         draggable: false,
       })),
-    [handleOpen]
+    [topicsData, handleOpen]
   )
 
   const initialEdges = useMemo(() => {
@@ -49,8 +135,8 @@ export default function SkillTree() {
         const target = t.status
         edges.push({
           id: `${prereqId}-${t.id}`,
-          source: prereqId,
-          target: t.id,
+          source: String(prereqId),
+          target: String(t.id),
           type: 'smoothstep',
           animated: t.status === 'current',
           style: {
@@ -61,16 +147,29 @@ export default function SkillTree() {
       })
     })
     return edges
-  }, [])
+  }, [topicsData])
 
-  const [nodes, , onNodesChange] = useNodesState(initialNodes)
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges)
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes)
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges)
+
+  useEffect(() => {
+    setNodes(initialNodes)
+    setEdges(initialEdges)
+  }, [initialNodes, initialEdges])
 
   const counts = useMemo(() => {
     const c = { completed: 0, unlocked: 0, current: 0, locked: 0 }
     topicsData.forEach((t) => (c[t.status] = (c[t.status] || 0) + 1))
     return c
-  }, [])
+  }, [topicsData])
+
+  if (!subjectId) {
+    return <div className="text-white/40 text-sm">No subject selected — go to Subjects and pick one.</div>
+  }
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-96 text-white/40 text-sm">Loading skill tree...</div>
+  }
 
   return (
     <div className="space-y-5">
@@ -78,9 +177,9 @@ export default function SkillTree() {
         <div>
           <Breadcrumb items={[{ label: 'Skill Tree' }]} />
           <h1 className="font-display font-bold text-2xl sm:text-3xl flex items-center gap-2.5">
-            <GitBranch className="w-6 h-6 text-emerald-bright" /> Web Development Path
+            <GitBranch className="w-6 h-6 text-emerald-bright" /> {subject?.name || 'Skill Tree'}
           </h1>
-          <p className="text-white/40 text-sm mt-1">HTML to Next.js — {topicsData.length} topics, one boss level.</p>
+          <p className="text-white/40 text-sm mt-1">{topicsData.length} topics in this path.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
           <Legend color="#F5B942" label={`${counts.completed} Completed`} />
@@ -126,7 +225,13 @@ export default function SkillTree() {
         </div>
       </motion.div>
 
-      <TopicDrawer topicId={openTopicId} open={!!openTopicId} onClose={() => setOpenTopicId(null)} />
+      <TopicDrawer
+        topicId={openTopicId}
+        open={!!openTopicId}
+        onClose={() => setOpenTopicId(null)}
+        topicsData={topicsData}
+        onTopicCompleted={() => loadTopics(false)}
+      />
     </div>
   )
 }

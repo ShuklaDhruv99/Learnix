@@ -62,6 +62,17 @@ export function AppProvider({ children }) {
     await refreshSubjects()
   }
 
+  async function fetchTopics(subjectId) {
+    return apiRequest(`/subjects/${subjectId}/topics/`)
+  }
+  
+  async function completeTopic(topicId) {
+    const result = await apiRequest(`/topics/${topicId}/complete/`, { method: 'POST' })
+    await refreshDashboard()
+    await refreshSubjects()
+    return result
+  }
+
   useEffect(() => {
     if (isAuthenticated) {
       refreshDashboard()
@@ -134,6 +145,9 @@ export function AppProvider({ children }) {
       setSidebarOpen,
       mobileNavOpen,
       setMobileNavOpen,
+      enrollInSubject,
+      fetchTopics,
+      completeTopic,
     }),
     [isAuthenticated, currentUser, authLoading, authError, dashboard, dashboardLoading, subjects, subjectsLoading, onboarding, sidebarOpen, mobileNavOpen]
   )
