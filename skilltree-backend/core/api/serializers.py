@@ -4,12 +4,43 @@ from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookma
 
 
 class SubjectSerializer(serializers.ModelSerializer):
+    completion = serializers.SerializerMethodField()
+    topics_completed = serializers.SerializerMethodField()
+    topics_total = serializers.SerializerMethodField()
+    xp_earned = serializers.SerializerMethodField()
+    is_enrolled = serializers.SerializerMethodField()
+
     class Meta:
         model = Subject
         fields = [
             'id', 'name', 'icon', 'accent', 'difficulty',
             'estimated_hours', 'university', 'branch', 'semester',
+            'completion', 'topics_completed', 'topics_total', 'xp_earned', 'is_enrolled',
         ]
+
+    def get_user_progress_qs(self, obj):
+        user = self.context['request'].user
+        return UserTopicProgress.objects.filter(user=user, topic__subject=obj)
+
+    def get_topics_total(self, obj):
+        return obj.topics.count()
+
+    def get_topics_completed(self, obj):
+        return self.get_user_progress_qs(obj).filter(status='completed').count()
+
+    def get_completion(self, obj):
+        total = self.get_topics_total(obj)
+        if total == 0:
+            return 0
+        completed = self.get_topics_completed(obj)
+        return round((completed / total) * 100)
+
+    def get_xp_earned(self, obj):
+        completed_progress = self.get_user_progress_qs(obj).filter(status='completed')
+        return sum(p.topic.xp for p in completed_progress)
+
+    def get_is_enrolled(self, obj):
+        return self.get_user_progress_qs(obj).exists()
 
 
 class TopicSerializer(serializers.ModelSerializer):

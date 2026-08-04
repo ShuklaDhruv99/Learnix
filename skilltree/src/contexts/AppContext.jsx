@@ -6,14 +6,17 @@ const AppContext = createContext(null)
 export function AppProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(isLoggedIn())
   const [currentUser, setCurrentUser] = useState(() => {
-  const username = getCurrentUsername()
-  return username ? { username } : null
-})
+    const username = getCurrentUsername()
+    return username ? { username } : null
+  })
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState(null)
 
   const [dashboard, setDashboard] = useState(null)
   const [dashboardLoading, setDashboardLoading] = useState(false)
+
+  const [subjects, setSubjects] = useState([])
+  const [subjectsLoading, setSubjectsLoading] = useState(false)
 
   const [onboarding, setOnboarding] = useState({
     learnerType: null,
@@ -42,11 +45,30 @@ export function AppProvider({ children }) {
     }
   }
 
+  async function refreshSubjects() {
+    setSubjectsLoading(true)
+    try {
+      const data = await apiRequest('/subjects/')
+      setSubjects(data)
+    } catch (err) {
+      console.error('Failed to load subjects', err)
+    } finally {
+      setSubjectsLoading(false)
+    }
+  }
+
+  async function enrollInSubject(subjectId) {
+    await apiRequest(`/subjects/${subjectId}/enroll/`, { method: 'POST' })
+    await refreshSubjects()
+  }
+
   useEffect(() => {
     if (isAuthenticated) {
       refreshDashboard()
+      refreshSubjects()
     } else {
       setDashboard(null)
+      setSubjects([])
     }
   }, [isAuthenticated])
 
@@ -87,6 +109,7 @@ export function AppProvider({ children }) {
     setIsAuthenticated(false)
     setCurrentUser(null)
     setDashboard(null)
+    setSubjects([])
   }
 
   const value = useMemo(
@@ -101,6 +124,10 @@ export function AppProvider({ children }) {
       dashboard,
       dashboardLoading,
       refreshDashboard,
+      subjects,
+      subjectsLoading,
+      refreshSubjects,
+      enrollInSubject,
       onboarding,
       setOnboarding,
       sidebarOpen,
@@ -108,7 +135,7 @@ export function AppProvider({ children }) {
       mobileNavOpen,
       setMobileNavOpen,
     }),
-    [isAuthenticated, currentUser, authLoading, authError, dashboard, dashboardLoading, onboarding, sidebarOpen, mobileNavOpen]
+    [isAuthenticated, currentUser, authLoading, authError, dashboard, dashboardLoading, subjects, subjectsLoading, onboarding, sidebarOpen, mobileNavOpen]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>

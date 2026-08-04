@@ -14,12 +14,13 @@ from rest_framework.parsers import MultiPartParser
 from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree
 from .tutor_service import get_tutor_response
 
-
 class SubjectListView(generics.ListAPIView):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
     permission_classes = [permissions.IsAuthenticated]
 
+    def get_serializer_context(self):
+        return {'request': self.request}
 
 class TopicListView(generics.ListAPIView):
     serializer_class = TopicSerializer
