@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.db.models import Sum
 from pypdf import PdfReader
 from rest_framework.parsers import MultiPartParser
+from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree
 
 
 class SubjectListView(generics.ListAPIView):
@@ -225,3 +226,53 @@ class SyllabusExtractView(APIView):
             'char_count': len(text),
             'preview': text[:500],
         })
+
+class SyllabusGenerateView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        if not file:
+            return Response({'error': 'No file uploaded.'}, status=400)
+
+        # 1. Extract text
+        try:
+            reader = PdfReader(file)
+            text = ""
+            for page in reader.pages:
+                text += page.extract_text() or ""
+        except Exception as e:
+            return Response({'error': f'Failed to read PDF: {str(e)}'}, status=400)
+
+        if len(text.strip()) < 50:
+            return Response({'error': 'Extracted text too short — is this a scanned/image PDF?'}, status=400)
+
+        # 2. Generate structured tree
+        try:
+            tree = generate_syllabus_tree(text)
+        except Exception as e:
+            return Response({'error': f'AI generation failed: {str(e)}'}, status=502)
+
+        # 3. Validate
+        is_valid, error = validate_topic_tree(tree)
+        if not is_valid:
+            return Response({'error': f'Generated tree failed validation: {error}'}, status=502)
+
+        # 4. Save
+        profile = request.user.profile
+        subject = save_generated_tree(
+            tree,
+            university=profile.university,
+            branch=profile.branch,
+            semester=profile.semester,
+        )
+
+        # 5. Auto-enroll the requesting user
+        enroll_user_in_subject(request.user, subject)
+
+        return Response({
+            'subject_id': subject.id,
+            'subject_name': subject.name,
+            'topic_count': subject.topics.count(),
+        }, status=201)
