@@ -9,11 +9,14 @@ import { stagger, fadeUp } from '../animations/variants'
 import { useApp } from '../contexts/AppContext'
 
 const STAGES = [
-  'Reading your syllabus...',
-  'Understanding the structure...',
-  'Building your skill tree...',
-  'Almost there...',
-]
+    { label: 'Reading your syllabus...', at: 0 },
+    { label: 'Identifying course structure...', at: 0.2 },
+    { label: 'Mapping topics and prerequisites...', at: 0.45 },
+    { label: 'Estimating difficulty and XP...', at: 0.7 },
+    { label: 'Finalizing your skill tree...', at: 0.9 },
+  ]
+  
+  const ESTIMATED_DURATION_MS = 150000
 
 export default function SyllabusUpload() {
   const navigate = useNavigate()
@@ -22,9 +25,9 @@ export default function SyllabusUpload() {
 
   const [file, setFile] = useState(null)
   const [status, setStatus] = useState('idle') // idle | uploading | success | error
-  const [stageIndex, setStageIndex] = useState(0)
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)
+  const [progress, setProgress] = useState(0)
 
   function handleFileSelect(e) {
     const selected = e.target.files?.[0]
@@ -46,25 +49,29 @@ export default function SyllabusUpload() {
   }
 
   async function handleUpload() {
-    console.log('handleUpload called, file =', file)
     if (!file) return
     setStatus('uploading')
     setError(null)
-    setStageIndex(0)
+    setProgress(0)
 
-    const stageInterval = setInterval(() => {
-      setStageIndex((i) => Math.min(i + 1, STAGES.length - 1))
-    }, 8000)
+    const startTime = Date.now()
+    const progressInterval = setInterval(() => {
+      const elapsed = Date.now() - startTime
+      // Ease toward 92% over the estimated duration, never claiming 100% until actually done
+      const fraction = Math.min(elapsed / ESTIMATED_DURATION_MS, 1) * 0.92
+      setProgress(fraction)
+    }, 300)
 
     try {
       const data = await generateSyllabus(file)
+      clearInterval(progressInterval)
+      setProgress(1)
       setResult(data)
       setStatus('success')
     } catch (err) {
+      clearInterval(progressInterval)
       setError(err?.data?.error || 'Something went wrong generating your skill tree.')
       setStatus('error')
-    } finally {
-      clearInterval(stageInterval)
     }
   }
 
@@ -99,13 +106,23 @@ export default function SyllabusUpload() {
                 disabled={status === 'uploading'}
               />
 
-              {status === 'uploading' ? (
-                <div className="space-y-4">
-                  <Loader2 className="w-10 h-10 mx-auto text-emerald-bright animate-spin" />
-                  <p className="text-sm text-white/70">{STAGES[stageIndex]}</p>
-                  <p className="text-xs text-white/35">This can take up to a minute — the AI is reading the whole document.</p>
-                </div>
-              ) : file ? (
+                {status === 'uploading' ? (
+                    <div className="space-y-4">
+                    <Loader2 className="w-10 h-10 mx-auto text-emerald-bright animate-spin" />
+                    <p className="text-sm text-white/70">
+                        {STAGES.slice().reverse().find((s) => progress >= s.at)?.label || STAGES[0].label}
+                    </p>
+                    <div className="w-full max-w-xs mx-auto h-1.5 rounded-full bg-white/10 overflow-hidden">
+                        <motion.div
+                            className="h-full bg-gradient-to-r from-emerald-bright to-blue rounded-full"
+                            initial={{ width: '0%' }}
+                            animate={{ width: `${Math.round(progress * 100)}%` }}
+                            transition={{ duration: 0.3, ease: 'easeOut' }}
+                        />
+                    </div>
+                    <p className="text-xs text-white/35">Good syllabi take real thought — usually under a minute.</p>
+                    </div>
+                ) : file ? (
                 <div className="space-y-3">
                   <FileText className="w-10 h-10 mx-auto text-emerald-bright" />
                   <p className="text-sm font-medium">{file.name}</p>
