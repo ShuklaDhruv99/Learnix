@@ -21,33 +21,8 @@ export function AppProvider({ children }) {
   const [resources, setResources] = useState([])
   const [bookmarks, setBookmarks] = useState([])
 
-  async function refreshResources() {
-    try {
-      const data = await apiRequest('/resources/')
-      setResources(data)
-    } catch (err) {
-      console.error('Failed to load resources', err)
-    }
-  }
-
-  async function refreshBookmarks() {
-    try {
-      const data = await apiRequest('/bookmarks/')
-      setBookmarks(data)
-    } catch (err) {
-      console.error('Failed to load bookmarks', err)
-    }
-  }
-
-  async function toggleBookmark(resourceId) {
-    const existing = bookmarks.find((b) => b.resource === resourceId)
-    if (existing) {
-      await apiRequest(`/bookmarks/${existing.id}/`, { method: 'DELETE' })
-    } else {
-      await apiRequest('/bookmarks/', { method: 'POST', body: { resource: resourceId } })
-    }
-    await Promise.all([refreshResources(), refreshBookmarks()])
-  }
+  const [achievements, setAchievements] = useState([])
+  const [leaderboard, setLeaderboard] = useState([])
 
   const [onboarding, setOnboarding] = useState({
     learnerType: null,
@@ -88,6 +63,52 @@ export function AppProvider({ children }) {
     }
   }
 
+  async function refreshResources() {
+    try {
+      const data = await apiRequest('/resources/')
+      setResources(data)
+    } catch (err) {
+      console.error('Failed to load resources', err)
+    }
+  }
+
+  async function refreshBookmarks() {
+    try {
+      const data = await apiRequest('/bookmarks/')
+      setBookmarks(data)
+    } catch (err) {
+      console.error('Failed to load bookmarks', err)
+    }
+  }
+
+  async function refreshAchievements() {
+    try {
+      const data = await apiRequest('/achievements/')
+      setAchievements(data)
+    } catch (err) {
+      console.error('Failed to load achievements', err)
+    }
+  }
+
+  async function refreshLeaderboard() {
+    try {
+      const data = await apiRequest('/leaderboard/')
+      setLeaderboard(data)
+    } catch (err) {
+      console.error('Failed to load leaderboard', err)
+    }
+  }
+
+  async function toggleBookmark(resourceId) {
+    const existing = bookmarks.find((b) => b.resource === resourceId)
+    if (existing) {
+      await apiRequest(`/bookmarks/${existing.id}/`, { method: 'DELETE' })
+    } else {
+      await apiRequest('/bookmarks/', { method: 'POST', body: { resource: resourceId } })
+    }
+    await Promise.all([refreshResources(), refreshBookmarks()])
+  }
+
   async function enrollInSubject(subjectId) {
     await apiRequest(`/subjects/${subjectId}/enroll/`, { method: 'POST' })
     await refreshSubjects()
@@ -96,11 +117,13 @@ export function AppProvider({ children }) {
   async function fetchTopics(subjectId) {
     return apiRequest(`/subjects/${subjectId}/topics/`)
   }
-  
+
   async function completeTopic(topicId) {
     const result = await apiRequest(`/topics/${topicId}/complete/`, { method: 'POST' })
     await refreshDashboard()
     await refreshSubjects()
+    await refreshAchievements()
+    await refreshLeaderboard()
     return result
   }
 
@@ -118,11 +141,15 @@ export function AppProvider({ children }) {
       refreshSubjects()
       refreshResources()
       refreshBookmarks()
+      refreshAchievements()
+      refreshLeaderboard()
     } else {
       setDashboard(null)
       setSubjects([])
       setResources([])
       setBookmarks([])
+      setAchievements([])
+      setLeaderboard([])
     }
   }, [isAuthenticated])
 
@@ -164,6 +191,10 @@ export function AppProvider({ children }) {
     setCurrentUser(null)
     setDashboard(null)
     setSubjects([])
+    setResources([])
+    setBookmarks([])
+    setAchievements([])
+    setLeaderboard([])
   }
 
   const value = useMemo(
@@ -182,12 +213,6 @@ export function AppProvider({ children }) {
       subjectsLoading,
       refreshSubjects,
       enrollInSubject,
-      onboarding,
-      setOnboarding,
-      sidebarOpen,
-      setSidebarOpen,
-      mobileNavOpen,
-      setMobileNavOpen,
       fetchTopics,
       completeTopic,
       resources,
@@ -195,9 +220,35 @@ export function AppProvider({ children }) {
       refreshResources,
       refreshBookmarks,
       toggleBookmark,
+      achievements,
+      refreshAchievements,
+      leaderboard,
+      refreshLeaderboard,
       generateSyllabus,
+      onboarding,
+      setOnboarding,
+      sidebarOpen,
+      setSidebarOpen,
+      mobileNavOpen,
+      setMobileNavOpen,
     }),
-    [isAuthenticated, currentUser, authLoading, authError, dashboard, dashboardLoading, subjects, subjectsLoading, resources, bookmarks, onboarding, sidebarOpen, mobileNavOpen]
+    [
+      isAuthenticated,
+      currentUser,
+      authLoading,
+      authError,
+      dashboard,
+      dashboardLoading,
+      subjects,
+      subjectsLoading,
+      resources,
+      bookmarks,
+      achievements,
+      leaderboard,
+      onboarding,
+      sidebarOpen,
+      mobileNavOpen,
+    ]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
@@ -207,14 +258,4 @@ export function useApp() {
   const ctx = useContext(AppContext)
   if (!ctx) throw new Error('useApp must be used within AppProvider')
   return ctx
-}
-
-function logout() {
-  clearTokens()
-  setIsAuthenticated(false)
-  setCurrentUser(null)
-  setDashboard(null)
-  setSubjects([])
-  setResources([])
-  setBookmarks([])
 }

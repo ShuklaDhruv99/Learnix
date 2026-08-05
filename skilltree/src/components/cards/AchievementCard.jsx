@@ -36,14 +36,14 @@ export default function AchievementCard({ achievement }) {
 
       {unlocked ? (
         <span className={`text-[10px] font-mono uppercase tracking-wider ${t.text}`}>
-          Unlocked · +{achievement.xpReward} XP
+          Unlocked · +{achievement.xp_reward} XP
         </span>
       ) : (
         <div className="w-full">
           <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-            <div className="h-full bg-white/20 rounded-full" style={{ width: `${achievement.progress || 0}%` }} />
+            <div className="h-full bg-white/20 rounded-full" style={{ width: `${achievement.progress_pct || 0}%` }} />
           </div>
-          <span className="text-[10px] text-white/30 font-mono mt-1 block">{achievement.progress || 0}%</span>
+          <span className="text-[10px] text-white/30 font-mono mt-1 block">{achievement.progress_pct || 0}%</span>
         </div>
       )}
     </Card>

@@ -3,9 +3,10 @@ import { Award, Trophy } from 'lucide-react'
 import AchievementCard from '../components/cards/AchievementCard'
 import Card from '../components/ui/Card'
 import { stagger, fadeUp } from '../animations/variants'
-import achievements from '../data/achievements.json'
+import { useApp } from '../contexts/AppContext'
 
 export default function Achievements() {
+  const { achievements } = useApp()
   const unlockedCount = achievements.filter((a) => a.unlocked).length
 
   return (
