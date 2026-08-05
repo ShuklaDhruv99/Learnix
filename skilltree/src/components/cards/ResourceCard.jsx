@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Play, FileText, Newspaper, ListChecks, Code2, Star, Eye, Bookmark } from 'lucide-react'
 import Card from '../ui/Card'
 import Badge from '../ui/Badge'
@@ -7,12 +6,11 @@ import { accentMap, difficultyColor } from '../../utils/xp'
 const TYPE_ICON = { youtube: Play, pdf: FileText, article: Newspaper, mcq: ListChecks, coding: Code2 }
 
 export default function ResourceCard({ resource, bookmarked = false, onToggleBookmark }) {
-  const [saved, setSaved] = useState(bookmarked)
   const TypeIcon = TYPE_ICON[resource.type] || FileText
-  const a = accentMap[resource.thumbnailColor] || accentMap.emerald
+  const a = accentMap[resource.thumbnail_color] || accentMap.emerald
 
   return (
-    <Card hover glow={resource.thumbnailColor} className="overflow-hidden group">
+    <Card hover glow={resource.thumbnail_color} className="overflow-hidden group">
       <div className={`relative h-28 flex items-center justify-center bg-gradient-to-br ${a.gradient} bg-opacity-10`} style={{ background: `linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01))` }}>
         <div className={`w-12 h-12 rounded-full ${a.bgSoft} border ${a.border} flex items-center justify-center group-hover:scale-110 transition-transform`}>
           <TypeIcon className={`w-5 h-5 ${a.text}`} />
@@ -20,13 +18,12 @@ export default function ResourceCard({ resource, bookmarked = false, onToggleBoo
         <button
           onClick={(e) => {
             e.preventDefault()
-            setSaved((s) => !s)
             onToggleBookmark?.(resource.id)
           }}
           className="absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/40 backdrop-blur-sm hover:bg-black/60"
           aria-label="Bookmark resource"
         >
-          <Bookmark className={`w-3.5 h-3.5 ${saved ? 'fill-gold-bright text-gold-bright' : 'text-white/70'}`} />
+          <Bookmark className={`w-3.5 h-3.5 ${bookmarked ? 'fill-gold-bright text-gold-bright' : 'text-white/70'}`} />
         </button>
         <span className="absolute bottom-2.5 left-2.5 text-[10px] font-mono px-2 py-0.5 rounded-full bg-black/50 backdrop-blur-sm">
           {resource.duration}
@@ -34,7 +31,7 @@ export default function ResourceCard({ resource, bookmarked = false, onToggleBoo
       </div>
       <div className="p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Badge accent={resource.thumbnailColor} className="!text-[10px]">{resource.platform}</Badge>
+          <Badge accent={resource.thumbnail_color} className="!text-[10px]">{resource.platform}</Badge>
           <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${difficultyColor(resource.difficulty)}`}>
             {resource.difficulty}
           </span>

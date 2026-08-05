@@ -18,6 +18,37 @@ export function AppProvider({ children }) {
   const [subjects, setSubjects] = useState([])
   const [subjectsLoading, setSubjectsLoading] = useState(false)
 
+  const [resources, setResources] = useState([])
+  const [bookmarks, setBookmarks] = useState([])
+
+  async function refreshResources() {
+    try {
+      const data = await apiRequest('/resources/')
+      setResources(data)
+    } catch (err) {
+      console.error('Failed to load resources', err)
+    }
+  }
+
+  async function refreshBookmarks() {
+    try {
+      const data = await apiRequest('/bookmarks/')
+      setBookmarks(data)
+    } catch (err) {
+      console.error('Failed to load bookmarks', err)
+    }
+  }
+
+  async function toggleBookmark(resourceId) {
+    const existing = bookmarks.find((b) => b.resource === resourceId)
+    if (existing) {
+      await apiRequest(`/bookmarks/${existing.id}/`, { method: 'DELETE' })
+    } else {
+      await apiRequest('/bookmarks/', { method: 'POST', body: { resource: resourceId } })
+    }
+    await Promise.all([refreshResources(), refreshBookmarks()])
+  }
+
   const [onboarding, setOnboarding] = useState({
     learnerType: null,
     board: null,
@@ -77,9 +108,13 @@ export function AppProvider({ children }) {
     if (isAuthenticated) {
       refreshDashboard()
       refreshSubjects()
+      refreshResources()
+      refreshBookmarks()
     } else {
       setDashboard(null)
       setSubjects([])
+      setResources([])
+      setBookmarks([])
     }
   }, [isAuthenticated])
 
@@ -148,8 +183,13 @@ export function AppProvider({ children }) {
       enrollInSubject,
       fetchTopics,
       completeTopic,
+      resources,
+      bookmarks, 
+      refreshResources, 
+      refreshBookmarks, 
+      toggleBookmark,
     }),
-    [isAuthenticated, currentUser, authLoading, authError, dashboard, dashboardLoading, subjects, subjectsLoading, onboarding, sidebarOpen, mobileNavOpen]
+    [isAuthenticated, currentUser, authLoading, authError, dashboard, dashboardLoading, subjects, subjectsLoading, resources, bookmarks, onboarding, sidebarOpen, mobileNavOpen]
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
@@ -159,4 +199,14 @@ export function useApp() {
   const ctx = useContext(AppContext)
   if (!ctx) throw new Error('useApp must be used within AppProvider')
   return ctx
+}
+
+function logout() {
+  clearTokens()
+  setIsAuthenticated(false)
+  setCurrentUser(null)
+  setDashboard(null)
+  setSubjects([])
+  setResources([])
+  setBookmarks([])
 }

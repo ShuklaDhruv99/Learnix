@@ -4,8 +4,7 @@ import { Library, Search, SlidersHorizontal } from 'lucide-react'
 import ResourceCard from '../components/cards/ResourceCard'
 import Card from '../components/ui/Card'
 import { stagger, fadeUp } from '../animations/variants'
-import resourcesData from '../data/resources.json'
-import bookmarksData from '../data/bookmarks.json'
+import { useApp } from '../contexts/AppContext'
 
 const typeFilters = [
   { id: 'all', label: 'All' },
@@ -13,35 +12,27 @@ const typeFilters = [
   { id: 'pdf', label: 'PDF' },
   { id: 'article', label: 'Articles' },
   { id: 'mcq', label: 'MCQs' },
-  { id: 'coding', label: 'Coding' },
 ]
 
 const sortOptions = [
-  { id: 'popular', label: 'Most Popular' },
-  { id: 'viewed', label: 'Most Viewed' },
   { id: 'rated', label: 'Highest Rated' },
   { id: 'newest', label: 'Newest' },
 ]
 
-function parseViews(v) {
-  const n = parseFloat(v)
-  if (v.includes('M')) return n * 1_000_000
-  if (v.includes('K')) return n * 1000
-  return n
-}
-
 export default function Resources() {
+  const { resources, toggleBookmark } = useApp()
   const [query, setQuery] = useState('')
   const [type, setType] = useState('all')
-  const [sort, setSort] = useState('popular')
+  const [sort, setSort] = useState('rated')
 
   const filtered = useMemo(() => {
-    let list = resourcesData.filter((r) => (type === 'all' || r.type === type) && r.title.toLowerCase().includes(query.toLowerCase()))
-    if (sort === 'viewed') list = [...list].sort((a, b) => parseViews(b.views) - parseViews(a.views))
-    else if (sort === 'rated') list = [...list].sort((a, b) => b.rating - a.rating)
+    let list = resources.filter(
+      (r) => (type === 'all' || r.type === type) && r.title.toLowerCase().includes(query.toLowerCase())
+    )
+    if (sort === 'rated') list = [...list].sort((a, b) => b.rating - a.rating)
     else if (sort === 'newest') list = [...list].reverse()
     return list
-  }, [query, type, sort])
+  }, [resources, query, type, sort])
 
   return (
     <motion.div variants={stagger(0.06)} initial="hidden" animate="show" className="space-y-6">
@@ -98,7 +89,7 @@ export default function Resources() {
       <motion.div variants={stagger(0.04)} className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filtered.map((r) => (
           <motion.div key={r.id} variants={fadeUp}>
-            <ResourceCard resource={r} bookmarked={bookmarksData.resources.includes(r.id)} />
+            <ResourceCard resource={r} bookmarked={r.is_bookmarked} onToggleBookmark={toggleBookmark} />
           </motion.div>
         ))}
         {filtered.length === 0 && (

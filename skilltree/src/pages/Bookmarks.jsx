@@ -1,17 +1,11 @@
 import { motion } from 'framer-motion'
 import { Bookmark } from 'lucide-react'
 import ResourceCard from '../components/cards/ResourceCard'
-import Card from '../components/ui/Card'
-import Badge from '../components/ui/Badge'
-import { getIcon } from '../utils/iconMap'
 import { stagger, fadeUp } from '../animations/variants'
-import bookmarksData from '../data/bookmarks.json'
-import resources from '../data/resources.json'
-import topics from '../data/topics.json'
+import { useApp } from '../contexts/AppContext'
 
 export default function Bookmarks() {
-  const savedResources = resources.filter((r) => bookmarksData.resources.includes(r.id))
-  const savedTopics = topics.filter((t) => bookmarksData.topics.includes(t.id))
+  const { bookmarks, toggleBookmark } = useApp()
 
   return (
     <motion.div variants={stagger(0.06)} initial="hidden" animate="show" className="space-y-8">
@@ -23,32 +17,16 @@ export default function Bookmarks() {
       </motion.div>
 
       <motion.div variants={fadeUp}>
-        <h2 className="font-display font-semibold text-lg mb-4">Saved Topics</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {savedTopics.map((t) => {
-            const Icon = getIcon(t.icon)
-            return (
-              <Card key={t.id} className="p-4 flex items-center gap-3" hover>
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                  <Icon className="w-4.5 h-4.5 text-emerald-bright" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{t.name}</p>
-                  <Badge accent="purple" className="mt-1">{t.difficulty}</Badge>
-                </div>
-              </Card>
-            )
-          })}
-        </div>
-      </motion.div>
-
-      <motion.div variants={fadeUp}>
         <h2 className="font-display font-semibold text-lg mb-4">Saved Resources</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {savedResources.map((r) => (
-            <ResourceCard key={r.id} resource={r} bookmarked />
-          ))}
-        </div>
+        {bookmarks.length === 0 ? (
+          <p className="text-sm text-white/40">No bookmarks yet — save resources from the Resources page.</p>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {bookmarks.map((b) => (
+              <ResourceCard key={b.id} resource={b.resource_detail} bookmarked onToggleBookmark={() => toggleBookmark(b.resource_detail.id)} />
+            ))}
+          </div>
+        )}
       </motion.div>
     </motion.div>
   )

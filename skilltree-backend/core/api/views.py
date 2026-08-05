@@ -304,3 +304,11 @@ class TopicChatView(APIView):
             return Response({'error': f'Tutor failed to respond: {str(e)}'}, status=502)
 
         return Response({'reply': reply})
+
+class AllResourcesListView(generics.ListAPIView):
+    queryset = Resource.objects.all()
+    serializer_class = ResourceSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_context(self):
+        return {'request': self.request}
