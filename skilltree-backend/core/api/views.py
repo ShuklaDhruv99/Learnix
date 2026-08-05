@@ -17,6 +17,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Sum
 from collections import defaultdict
+from .youtube_service import search_youtube_videos
 
 class SubjectListView(generics.ListAPIView):
     serializer_class = SubjectSerializer
@@ -333,9 +334,15 @@ class TopicChatView(APIView):
         return Response({'reply': reply})
 
 class AllResourcesListView(generics.ListAPIView):
-    queryset = Resource.objects.all()
     serializer_class = ResourceSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        enrolled_subject_ids = UserTopicProgress.objects.filter(
+            user=user
+        ).values_list('topic__subject_id', flat=True).distinct()
+        return Resource.objects.filter(topic__subject_id__in=enrolled_subject_ids)
 
     def get_serializer_context(self):
         return {'request': self.request}
@@ -426,3 +433,44 @@ class AnalyticsView(APIView):
             'subjectComparison': subject_comparison,
             'dailyActivityHeatmap': heatmap,
         })
+
+class FetchTopicResourcesView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, topic_id):
+        topic = get_object_or_404(Topic, id=topic_id)
+        query = f"{topic.name} {topic.subject.name} tutorial"
+
+        existing_urls = set(Resource.objects.filter(topic=topic).values_list('url', flat=True))
+
+        try:
+            videos = search_youtube_videos(query, max_results=6)
+        except Exception as e:
+            return Response({'error': f'YouTube search failed: {str(e)}'}, status=502)
+
+        created = []
+        for v in videos:
+            if v['url'] in existing_urls:
+                continue
+            resource = Resource.objects.create(
+                topic=topic,
+                title=v['title'],
+                type='youtube',
+                platform='YouTube',
+                creator=v['channel'],
+                url=v['url'],
+                duration='',
+                views='',
+                rating=0,
+                difficulty=topic.difficulty,
+                thumbnail_color='emerald',
+            )
+            created.append(resource.id)
+            existing_urls.add(v['url'])
+            if len(created) >= 3:
+                break
+
+        if not created:
+            return Response({'topic_id': topic.id, 'resources_created': [], 'message': 'No new videos found — try again later.'})
+
+        return Response({'topic_id': topic.id, 'resources_created': created})

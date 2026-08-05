@@ -128,6 +128,14 @@ export function AppProvider({ children }) {
     return apiRequest(`/subjects/${subjectId}/topics/`)
   }
 
+  async function fetchAllMyTopics() {
+    const enrolledSubjects = subjects.filter((s) => s.is_enrolled)
+    const topicLists = await Promise.all(enrolledSubjects.map((s) => fetchTopics(s.id)))
+    return topicLists.flatMap((topics, i) =>
+      topics.map((t) => ({ ...t, subjectName: enrolledSubjects[i].name }))
+    )
+  }
+
   async function completeTopic(topicId) {
     const result = await apiRequest(`/topics/${topicId}/complete/`, { method: 'POST' })
     await refreshDashboard()
@@ -135,6 +143,14 @@ export function AppProvider({ children }) {
     await refreshAchievements()
     await refreshLeaderboard()
     return result
+  }
+
+  async function fetchTopicResources(topicId) {
+    return apiRequest(`/topics/${topicId}/fetch-resources/`, { method: 'POST' })
+  }
+
+  async function getTopicResources(topicId) {
+    return apiRequest(`/topics/${topicId}/resources/`)
   }
 
   async function generateSyllabus(file) {
@@ -277,6 +293,9 @@ export function AppProvider({ children }) {
       setMobileNavOpen,
       submitOnboarding,
       onboarding,
+      fetchTopicResources,
+      getTopicResources,
+      fetchAllMyTopics
     }),
     [
       isAuthenticated,
@@ -305,4 +324,12 @@ export function useApp() {
   const ctx = useContext(AppContext)
   if (!ctx) throw new Error('useApp must be used within AppProvider')
   return ctx
+}
+
+async function fetchAllMyTopics() {
+  const enrolledSubjects = subjects.filter((s) => s.is_enrolled)
+  const topicLists = await Promise.all(enrolledSubjects.map((s) => fetchTopics(s.id)))
+  return topicLists.flatMap((topics, i) =>
+    topics.map((t) => ({ ...t, subjectName: enrolledSubjects[i].name }))
+  )
 }
