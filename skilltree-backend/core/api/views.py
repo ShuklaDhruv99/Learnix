@@ -13,6 +13,10 @@ from pypdf import PdfReader
 from rest_framework.parsers import MultiPartParser
 from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree
 from .tutor_service import get_tutor_response
+from datetime import timedelta
+from django.utils import timezone
+from django.db.models import Sum
+from collections import defaultdict
 
 class SubjectListView(generics.ListAPIView):
     queryset = Subject.objects.all()
@@ -312,3 +316,90 @@ class AllResourcesListView(generics.ListAPIView):
 
     def get_serializer_context(self):
         return {'request': self.request}
+
+class AnalyticsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+
+        # Weekly Study Time (last 7 days)
+        week_start = today - timedelta(days=6)
+        sessions = StudySession.objects.filter(user=user, date__gte=week_start, date__lte=today)
+        minutes_by_day = defaultdict(int)
+        for s in sessions:
+            minutes_by_day[s.date] += s.minutes
+
+        day_labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+        weekly_study_time = []
+        for i in range(7):
+            d = week_start + timedelta(days=i)
+            weekly_study_time.append({
+                'day': day_labels[d.weekday()],
+                'hours': round(minutes_by_day.get(d, 0) / 60, 1),
+            })
+
+        # Completion rate
+        all_progress = UserTopicProgress.objects.filter(user=user)
+        total = all_progress.count()
+        completed = all_progress.filter(status='completed').count()
+        completion_rate = round((completed / total) * 100) if total > 0 else 0
+
+        # XP timeline (last 9 weeks, cumulative)
+        nine_weeks_ago = today - timedelta(weeks=9)
+        completed_progress = UserTopicProgress.objects.filter(
+            user=user, status='completed', completed_on__gte=nine_weeks_ago
+        ).select_related('topic')
+
+        xp_by_week = defaultdict(int)
+        for p in completed_progress:
+            if p.completed_on:
+                week_key = p.completed_on - timedelta(days=p.completed_on.weekday())
+                xp_by_week[week_key] += p.topic.xp
+
+        xp_timeline = []
+        cumulative = 0
+        for i in range(9):
+            week_date = (nine_weeks_ago - timedelta(days=nine_weeks_ago.weekday())) + timedelta(weeks=i)
+            cumulative += xp_by_week.get(week_date, 0)
+            xp_timeline.append({'date': week_date.strftime('%b %d'), 'xp': cumulative})
+
+        # Subject mastery radar + hours by subject
+        subjects = Subject.objects.filter(topics__user_progress__user=user).distinct()
+        completion_radar = []
+        subject_comparison = []
+        for subj in subjects:
+            subj_progress = UserTopicProgress.objects.filter(user=user, topic__subject=subj)
+            subj_total = subj_progress.count()
+            subj_completed = subj_progress.filter(status='completed').count()
+            pct = round((subj_completed / subj_total) * 100) if subj_total > 0 else 0
+            completion_radar.append({'subject': subj.name[:12], 'value': pct})
+
+            subj_minutes = StudySession.objects.filter(
+                user=user, topic__subject=subj
+            ).aggregate(total=Sum('minutes'))['total'] or 0
+            subject_comparison.append({'subject': subj.name[:12], 'hours': round(subj_minutes / 60, 1)})
+
+        # Daily activity heatmap (last 70 days, bucketed 0-4)
+        seventy_days_ago = today - timedelta(days=69)
+        recent_sessions = StudySession.objects.filter(user=user, date__gte=seventy_days_ago, date__lte=today)
+        activity_by_day = defaultdict(int)
+        for s in recent_sessions:
+            activity_by_day[s.date] += 1
+
+        heatmap = []
+        for i in range(70):
+            d = seventy_days_ago + timedelta(days=i)
+            count = activity_by_day.get(d, 0)
+            level = 0 if count == 0 else 1 if count == 1 else 2 if count == 2 else 3 if count <= 4 else 4
+            heatmap.append(level)
+
+        return Response({
+            'weeklyStudyTime': weekly_study_time,
+            'completionRate': completion_rate,
+            'xpTimeline': xp_timeline,
+            'completionRadar': completion_radar,
+            'subjectComparison': subject_comparison,
+            'dailyActivityHeatmap': heatmap,
+        })

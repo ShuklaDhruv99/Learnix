@@ -29,7 +29,7 @@ function ToggleRow({ icon: Icon, title, desc, checked, onChange }) {
 }
 
 export default function SettingsPage() {
-  const { student } = useApp()
+  const { currentUser } = useApp()
   const [notifications, setNotifications] = useState(true)
   const [dailyReminders, setDailyReminders] = useState(true)
   const [darkMode, setDarkMode] = useState(true)
@@ -52,16 +52,16 @@ export default function SettingsPage() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white/40 mb-1.5 block">Display Name</label>
-              <input defaultValue={student.name} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50" />
+              <input defaultValue={currentUser?.username || ''} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50" />
             </div>
             <div>
               <label className="text-xs text-white/40 mb-1.5 block">Username</label>
-              <input defaultValue={`@${student.username}`} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50" />
+              <input defaultValue={`@${currentUser?.username || ''}`} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50" />
             </div>
           </div>
           <div className="mt-4">
             <label className="text-xs text-white/40 mb-1.5 block">Bio</label>
-            <textarea defaultValue={student.bio} rows={3} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50 resize-none" />
+            <textarea defaultValue="" rows={3} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50 resize-none" />
           </div>
           <Button size="sm" className="mt-4">Save Changes</Button>
         </Card>

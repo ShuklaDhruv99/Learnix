@@ -19,7 +19,7 @@ import { BarChart3, Flame } from 'lucide-react'
 import AnalyticsCard from '../components/cards/AnalyticsCard'
 import ProgressRing from '../components/ui/ProgressRing'
 import { stagger, fadeUp } from '../animations/variants'
-import analytics from '../data/analytics.json'
+import { useApp } from '../contexts/AppContext'
 
 const tooltipStyle = {
   background: 'rgba(20,20,24,0.92)',
@@ -49,6 +49,12 @@ function HeatmapGrid({ data }) {
 }
 
 export default function Analytics() {
+  const { analytics } = useApp()
+
+  if (!analytics) {
+    return <div className="flex items-center justify-center h-96 text-white/40 text-sm">Loading analytics...</div>
+  }
+  
   return (
     <motion.div variants={stagger(0.06)} initial="hidden" animate="show" className="space-y-6">
       <motion.div variants={fadeUp}>

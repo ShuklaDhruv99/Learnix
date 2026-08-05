@@ -12,7 +12,8 @@ import {
   Settings,
   Sparkles,
   X,
-  UploadCloud
+  UploadCloud,
+  LogOut,
 } from 'lucide-react'
 import { useApp } from '../../contexts/AppContext'
 import { cn } from '../../utils/cn'
@@ -31,6 +32,8 @@ const navItems = [
 ]
 
 function SidebarContent({ onNavigate }) {
+  const { logout, currentUser } = useApp()
+
   return (
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2.5 px-5 h-16 shrink-0">
@@ -71,12 +74,22 @@ function SidebarContent({ onNavigate }) {
         ))}
       </nav>
 
-      <div className="p-3">
+      <div className="p-3 space-y-2">
         <div className="glass rounded-xl p-3.5">
           <p className="text-xs text-white/50 leading-relaxed">
-            Keep your streak alive — <span className="text-emerald-bright font-medium">20 minutes today</span> keeps you on track.
+            Keep your streak alive — <span className="text-emerald-bright font-medium">every topic counts</span>.
           </p>
         </div>
+        <button
+          onClick={() => {
+            logout()
+            onNavigate?.()
+          }}
+          className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-red-400 hover:bg-red-500/5 transition-colors"
+        >
+          <LogOut className="w-4.5 h-4.5 shrink-0" />
+          <span>Log out{currentUser ? ` (${currentUser.username})` : ''}</span>
+        </button>
       </div>
     </div>
   )

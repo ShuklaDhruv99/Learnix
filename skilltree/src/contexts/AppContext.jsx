@@ -38,6 +38,16 @@ export function AppProvider({ children }) {
   })
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [analytics, setAnalytics] = useState(null)
+
+  async function refreshAnalytics() {
+    try {
+      const data = await apiRequest('/analytics/')
+      setAnalytics(data)
+    } catch (err) {
+      console.error('Failed to load analytics', err)
+    }
+  }
 
   async function refreshDashboard() {
     setDashboardLoading(true)
@@ -143,6 +153,7 @@ export function AppProvider({ children }) {
       refreshBookmarks()
       refreshAchievements()
       refreshLeaderboard()
+      refreshAnalytics()
     } else {
       setDashboard(null)
       setSubjects([])
@@ -150,6 +161,7 @@ export function AppProvider({ children }) {
       setBookmarks([])
       setAchievements([])
       setLeaderboard([])
+      setAnalytics(null)
     }
   }, [isAuthenticated])
 
@@ -195,6 +207,7 @@ export function AppProvider({ children }) {
     setBookmarks([])
     setAchievements([])
     setLeaderboard([])
+    setAnalytics(null)
   }
 
   const value = useMemo(
@@ -224,6 +237,8 @@ export function AppProvider({ children }) {
       refreshAchievements,
       leaderboard,
       refreshLeaderboard,
+      analytics,
+      refreshAnalytics,
       generateSyllabus,
       onboarding,
       setOnboarding,
@@ -245,6 +260,7 @@ export function AppProvider({ children }) {
       bookmarks,
       achievements,
       leaderboard,
+      analytics,
       onboarding,
       sidebarOpen,
       mobileNavOpen,
