@@ -12,6 +12,7 @@ import {
   Settings,
   Sparkles,
   X,
+  UploadCloud
 } from 'lucide-react'
 import { useApp } from '../../contexts/AppContext'
 import { cn } from '../../utils/cn'
@@ -19,6 +20,7 @@ import { cn } from '../../utils/cn'
 const navItems = [
   { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/app/subjects', label: 'Subjects', icon: BookOpen },
+  { to: '/app/syllabus-upload', label: 'Generate Tree', icon: UploadCloud },
   { to: '/app/skill-tree', label: 'Skill Tree', icon: GitBranch },
   { to: '/app/resources', label: 'Resources', icon: Library },
   { to: '/app/achievements', label: 'Achievements', icon: Award },

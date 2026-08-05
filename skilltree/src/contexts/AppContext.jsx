@@ -104,6 +104,14 @@ export function AppProvider({ children }) {
     return result
   }
 
+  async function generateSyllabus(file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    const result = await apiRequest('/syllabus/generate/', { method: 'POST', body: formData, isFormData: true })
+    await refreshSubjects()
+    return result
+  }
+
   useEffect(() => {
     if (isAuthenticated) {
       refreshDashboard()
@@ -180,14 +188,14 @@ export function AppProvider({ children }) {
       setSidebarOpen,
       mobileNavOpen,
       setMobileNavOpen,
-      enrollInSubject,
       fetchTopics,
       completeTopic,
       resources,
-      bookmarks, 
-      refreshResources, 
-      refreshBookmarks, 
+      bookmarks,
+      refreshResources,
+      refreshBookmarks,
       toggleBookmark,
+      generateSyllabus,
     }),
     [isAuthenticated, currentUser, authLoading, authError, dashboard, dashboardLoading, subjects, subjectsLoading, resources, bookmarks, onboarding, sidebarOpen, mobileNavOpen]
   )

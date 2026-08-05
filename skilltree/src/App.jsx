@@ -18,6 +18,7 @@ import Leaderboard from './pages/Leaderboard'
 import Bookmarks from './pages/Bookmarks'
 import Profile from './pages/Profile'
 import Settings from './pages/Settings'
+import SyllabusUpload from './pages/SyllabusUpload'
 
 export default function App() {
   return (
@@ -42,6 +43,7 @@ export default function App() {
             <Route path="/app/bookmarks" element={<Bookmarks />} />
             <Route path="/app/profile" element={<Profile />} />
             <Route path="/app/settings" element={<Settings />} />
+            <Route path="/app/syllabus-upload" element={<SyllabusUpload />} />
           </Route>
         </Routes>
       </BrowserRouter>
