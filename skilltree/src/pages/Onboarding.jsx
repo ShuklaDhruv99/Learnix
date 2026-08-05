@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from 'lucide-react'
+import AccountStep from './onboarding/AccountStep'
 import WhoAreYou from './onboarding/WhoAreYou'
 import SchoolFlow from './onboarding/SchoolFlow'
 import CollegeFlow from './onboarding/CollegeFlow'
@@ -15,21 +16,31 @@ const SPECCED_TYPES = ['school', 'college']
 
 export default function Onboarding() {
   const navigate = useNavigate()
-  const { onboarding, setOnboarding } = useApp()
+  const { onboarding, setOnboarding, isAuthenticated, register, authLoading, authError, submitOnboarding } = useApp()
   const [step, setStep] = useState(0)
   const [generating, setGenerating] = useState(false)
+
+  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
   const data = onboarding
   const update = (patch) => setOnboarding((prev) => ({ ...prev, ...patch }))
 
   const detailStepNeeded = SPECCED_TYPES.includes(data.learnerType)
-  // steps: 0 = who are you, 1 = detail (school/college) [skipped for other types], 2 = goal
-  const steps = detailStepNeeded ? [0, 1, 2] : [0, 2]
-  const stepIndex = steps.indexOf(step === 1 && !detailStepNeeded ? 2 : step)
+
+  // Build the step key sequence based on whether an account already exists
+  const steps = isAuthenticated
+    ? (detailStepNeeded ? ['who', 'detail', 'goal'] : ['who', 'goal'])
+    : (detailStepNeeded ? ['account', 'who', 'detail', 'goal'] : ['account', 'who', 'goal'])
+
+  const stepKey = steps[step] ?? steps[steps.length - 1]
+  const stepIndex = step
 
   const canProceed = () => {
-    if (step === 0) return !!data.learnerType
-    if (step === 1) {
+    if (stepKey === 'account') return username && email && password.length >= 8
+    if (stepKey === 'who') return !!data.learnerType
+    if (stepKey === 'detail') {
       if (data.learnerType === 'school') {
         const base = data.board && data.medium && data.className
         const streamOk = data.className === '11' || data.className === '12' ? !!data.stream : true
@@ -40,25 +51,45 @@ export default function Onboarding() {
       }
       return true
     }
-    if (step === 2) return !!data.goalMode
+    if (stepKey === 'goal') return !!data.goalMode
     return false
   }
 
-  const goNext = () => {
-    if (step === 0) {
-      setStep(detailStepNeeded ? 1 : 2)
-    } else if (step === 1) {
-      setStep(2)
-    } else if (step === 2) {
+  const goNext = async () => {
+    if (stepKey === 'account') {
+      const ok = await register(username, email, password)
+      if (ok) setStep((s) => s + 1)
+      return
+    }
+
+    if (stepKey === 'goal') {
       setGenerating(true)
+      try {
+        await submitOnboarding({
+          education_type: data.learnerType,
+          board: data.board,
+          medium: data.medium,
+          class_name: data.className,
+          stream: data.stream,
+          university: data.university,
+          branch: data.branch,
+          semester: data.semester ? parseInt(data.semester, 10) : null,
+          goal_mode: data.goalMode,
+          onboarding_completed: true,
+        })
+      } catch (err) {
+        console.error('Failed to save onboarding data', err)
+      }
       update({ completed: true })
       setTimeout(() => navigate('/app'), 1900)
+      return
     }
+
+    setStep((s) => s + 1)
   }
 
   const goBack = () => {
-    if (step === 2) setStep(detailStepNeeded ? 1 : 0)
-    else if (step === 1) setStep(0)
+    setStep((s) => Math.max(0, s - 1))
   }
 
   if (generating) {
@@ -73,8 +104,8 @@ export default function Onboarding() {
           >
             <Loader2 className="w-7 h-7 text-base-950" />
           </motion.div>
-          <h2 className="font-display font-bold text-2xl mt-6">Generating your Skill Tree...</h2>
-          <p className="text-white/40 text-sm mt-2">Mapping topics, XP, and unlock order.</p>
+          <h2 className="font-display font-bold text-2xl mt-6">Setting things up...</h2>
+          <p className="text-white/40 text-sm mt-2">Saving your preferences.</p>
         </motion.div>
       </div>
     )
@@ -105,11 +136,19 @@ export default function Onboarding() {
       <main className="relative flex-1 flex items-center justify-center px-5 py-10">
         <div className="w-full max-w-2xl">
           <AnimatePresence mode="wait">
-            <motion.div key={step} {...pageTransition}>
-              {step === 0 && <WhoAreYou value={data.learnerType} onSelect={(v) => update({ learnerType: v })} />}
-              {step === 1 && data.learnerType === 'school' && <SchoolFlow data={data} onChange={update} />}
-              {step === 1 && data.learnerType === 'college' && <CollegeFlow data={data} onChange={update} />}
-              {step === 2 && <GoalSelection value={data.goalMode} onSelect={(v) => update({ goalMode: v })} />}
+            <motion.div key={stepKey} {...pageTransition}>
+              {stepKey === 'account' && (
+                <AccountStep
+                  username={username} setUsername={setUsername}
+                  email={email} setEmail={setEmail}
+                  password={password} setPassword={setPassword}
+                  error={authError}
+                />
+              )}
+              {stepKey === 'who' && <WhoAreYou value={data.learnerType} onSelect={(v) => update({ learnerType: v })} />}
+              {stepKey === 'detail' && data.learnerType === 'school' && <SchoolFlow data={data} onChange={update} />}
+              {stepKey === 'detail' && data.learnerType === 'college' && <CollegeFlow data={data} onChange={update} />}
+              {stepKey === 'goal' && <GoalSelection value={data.goalMode} onSelect={(v) => update({ goalMode: v })} />}
             </motion.div>
           </AnimatePresence>
 
@@ -117,8 +156,14 @@ export default function Onboarding() {
             <Button variant="ghost" icon={ArrowLeft} onClick={goBack} className={step === 0 ? 'invisible' : ''}>
               Back
             </Button>
-            <Button variant="primary" iconRight={ArrowRight} onClick={goNext} disabled={!canProceed()} className={!canProceed() ? 'opacity-40 pointer-events-none' : ''}>
-              {step === 2 ? 'Generate My Skill Tree' : 'Continue'}
+            <Button
+              variant="primary"
+              iconRight={ArrowRight}
+              onClick={goNext}
+              disabled={!canProceed() || authLoading}
+              className={!canProceed() ? 'opacity-40 pointer-events-none' : ''}
+            >
+              {authLoading ? 'Please wait...' : stepKey === 'goal' ? 'Generate My Skill Tree' : 'Continue'}
             </Button>
           </div>
         </div>

@@ -9,9 +9,9 @@ class Profile(models.Model):
         ('other','Other')
     ]
     GOAL_MODES = [
-        ('topper','Topper'),
-        ('passing','Just Passing'),
-        ('revision','Revision')
+        ('pass', 'Pass Mode'),
+        ('average', 'Average Mode'),
+        ('topper', 'Topper Mode'),
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')

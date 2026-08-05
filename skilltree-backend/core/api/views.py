@@ -19,12 +19,35 @@ from django.db.models import Sum
 from collections import defaultdict
 
 class SubjectListView(generics.ListAPIView):
-    queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get_serializer_context(self):
-        return {'request': self.request}
+    def get_queryset(self):
+        user = self.request.user
+        profile = getattr(user, 'profile', None)
+
+        enrolled_subject_ids = UserTopicProgress.objects.filter(
+            user=user
+        ).values_list('topic__subject_id', flat=True).distinct()
+
+        from django.db.models import Q
+
+        # Always-visible: subjects with no scoping at all (generic/manual test subjects)
+        generic_q = Q(university__isnull=True, branch__isnull=True, semester__isnull=True)
+
+        base_q = Q(id__in=enrolled_subject_ids) | generic_q
+
+        if profile and profile.education_type == 'college' and profile.university and profile.branch and profile.semester:
+            base_q |= Q(university=profile.university, branch=profile.branch, semester=profile.semester)
+            return Subject.objects.filter(base_q).distinct()
+
+        if profile and profile.education_type == 'school':
+            # School students only see enrolled + generic subjects — no college-scoped ones at all,
+            # since Subject has no board/class fields to match against yet.
+            return Subject.objects.filter(base_q).distinct()
+
+        # No profile, or education_type not set/recognized — safest default: enrolled + generic only
+        return Subject.objects.filter(base_q).distinct()
 
 class TopicListView(generics.ListAPIView):
     serializer_class = TopicSerializer

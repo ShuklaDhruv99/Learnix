@@ -166,13 +166,31 @@ export function AppProvider({ children }) {
   }, [isAuthenticated])
 
   async function login(username, password) {
+    console.log('login() called for', username)
     setAuthLoading(true)
     setAuthError(null)
+    // Clear any previous session's cached data before switching accounts
+    setDashboard(null)
+    setSubjects([])
+    setResources([])
+    setBookmarks([])
+    setAchievements([])
+    setLeaderboard([])
+    setAnalytics(null)
     try {
       await apiLogin(username, password)
       setCurrentUsername(username)
       setIsAuthenticated(true)
       setCurrentUser({ username })
+      await Promise.all([
+        refreshDashboard(),
+        refreshSubjects(),
+        refreshResources(),
+        refreshBookmarks(),
+        refreshAchievements(),
+        refreshLeaderboard(),
+        refreshAnalytics(),
+      ])
       return true
     } catch (err) {
       setAuthError(err?.data?.detail || 'Login failed. Check your username and password.')
@@ -182,9 +200,20 @@ export function AppProvider({ children }) {
     }
   }
 
+  async function submitOnboarding(payload) {
+    return apiRequest('/onboarding/', { method: 'PATCH', body: payload })
+  }
+
   async function register(username, email, password) {
     setAuthLoading(true)
     setAuthError(null)
+    setDashboard(null)
+    setSubjects([])
+    setResources([])
+    setBookmarks([])
+    setAchievements([])
+    setLeaderboard([])
+    setAnalytics(null)
     try {
       await apiRegister(username, email, password)
       return await login(username, password)
@@ -246,6 +275,8 @@ export function AppProvider({ children }) {
       setSidebarOpen,
       mobileNavOpen,
       setMobileNavOpen,
+      submitOnboarding,
+      onboarding,
     }),
     [
       isAuthenticated,
