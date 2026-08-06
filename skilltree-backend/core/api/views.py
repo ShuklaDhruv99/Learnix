@@ -500,8 +500,15 @@ class GenerateQuizView(APIView):
         topic = get_object_or_404(Topic, id=topic_id)
         profile = request.user.profile
 
+        num_questions = request.data.get('num_questions', 5)
         try:
-            quiz = generate_quiz(topic.name, topic.description, topic.difficulty, profile.goal_mode)
+            num_questions = int(num_questions)
+        except (TypeError, ValueError):
+            num_questions = 5
+        num_questions = max(3, min(num_questions, 20))
+
+        try:
+            quiz = generate_quiz(topic.name, topic.description, topic.difficulty, profile.goal_mode, num_questions)
         except Exception as e:
             return Response({'error': f'Quiz generation failed: {str(e)}'}, status=502)
 

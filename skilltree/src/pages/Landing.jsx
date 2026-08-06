@@ -135,8 +135,6 @@ export default function Landing() {
               )}
             </motion.div>
             <motion.div variants={fadeUp} className="mt-10 flex items-center gap-6 text-xs text-white/30 font-mono">
-              <span>No credit card</span>
-              <span className="w-1 h-1 rounded-full bg-white/20" />
               <span>Free to start</span>
               <span className="w-1 h-1 rounded-full bg-white/20" />
               <span>Works on any syllabus</span>

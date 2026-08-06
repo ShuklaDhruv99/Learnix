@@ -13,18 +13,23 @@ export default function QuizSection({ topicId }) {
   const [selected, setSelected] = useState(null)
   const [answers, setAnswers] = useState([])
   const [error, setError] = useState(null)
+  const [numQuestions, setNumQuestions] = useState(5)
 
   async function handleStart() {
+    console.log('handleStart entered, numQuestions =', numQuestions)
     setStatus('loading')
     setError(null)
     try {
-      const data = await generateQuiz(topicId)
+      console.log('about to call generateQuiz')
+      const data = await generateQuiz(topicId, numQuestions)
+      console.log('generateQuiz returned', data)
       setQuestions(data.questions)
       setCurrent(0)
       setSelected(null)
       setAnswers([])
       setStatus('active')
     } catch (err) {
+      console.log('generateQuiz threw:', err)
       setError(err?.data?.error || 'Failed to generate quiz.')
       setStatus('error')
     }
@@ -65,7 +70,13 @@ export default function QuizSection({ topicId }) {
         </h3>
         {(status === 'idle' || status === 'error' || status === 'submitted') && (
           <button
-            onClick={handleStart}
+            onClick={() => {
+              if (status === 'submitted' || status === 'error') {
+                setStatus('idle')
+              } else {
+                handleStart()
+              }
+            }}
             className="text-xs text-emerald-bright hover:text-emerald-bright/80 inline-flex items-center gap-1.5"
           >
             <RefreshCw className="w-3 h-3" />
@@ -75,7 +86,23 @@ export default function QuizSection({ topicId }) {
       </div>
 
       {status === 'idle' && (
-        <p className="text-xs text-white/30">Test your understanding with a 5-question quiz tailored to this topic.</p>
+        <div className="space-y-3">
+          <p className="text-xs text-white/30">Test your understanding with a quiz tailored to this topic.</p>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-white/40">Questions:</span>
+            {[5, 10, 15, 20].map((n) => (
+              <button
+                key={n}
+                onClick={() => setNumQuestions(n)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  numQuestions === n ? 'bg-purple/15 border-purple/40 text-purple-bright' : 'border-white/[0.06] text-white/50 hover:text-white'
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
 
       {status === 'loading' && (

@@ -112,7 +112,7 @@ def save_generated_tree(tree: SubjectTreeSchema, university=None, branch=None, s
 
     return subject
 
-def generate_quiz(topic_name, topic_description, difficulty, goal_mode):
+def generate_quiz(topic_name, topic_description, difficulty, goal_mode, num_questions=5):
     llm = ChatGoogleGenerativeAI(
         model="gemini-3.1-flash-lite",
         google_api_key=env('GOOGLE_API_KEY'),
@@ -126,14 +126,18 @@ def generate_quiz(topic_name, topic_description, difficulty, goal_mode):
         'topper': 'Include analytical, applied, and edge-case questions that test deep understanding, not just recall.',
     }.get(goal_mode, 'Mix basic and applied questions.')
 
-    prompt = f"""Generate a 5-question multiple choice quiz for the topic "{topic_name}".
+    prompt = f"""Generate a {num_questions}-question multiple choice quiz for the topic "{topic_name}".
+
     Topic description: {topic_description}
     Topic difficulty level: {difficulty}
     Student goal level: {goal_mode or 'average'}
+
     {goal_hint}
+
     Each question must have exactly 4 options, one correct answer (by index), and a brief explanation.
     Base question difficulty on both the topic's difficulty level and the student goal guidance above.
-    """
+    Vary the questions so no two test the exact same fact.
+    """ 
 
     return structured_llm.invoke(prompt)
 

@@ -16,7 +16,7 @@ const STAGES = [
     { label: 'Finalizing your skill tree...', at: 0.9 },
   ]
   
-  const ESTIMATED_DURATION_MS = 150000
+  const ESTIMATED_DURATION_MS = 40000
 
 export default function SyllabusUpload() {
   const navigate = useNavigate()

@@ -25,7 +25,7 @@ class QuizQuestionSchema(BaseModel):
     explanation: str = Field(description="Brief explanation of why the correct answer is right")
 
 class QuizSchema(BaseModel):
-    questions: List[QuizQuestionSchema] = Field(description="Exactly 5 quiz questions")
+    questions: List[QuizQuestionSchema] = Field(description="The quiz questions, matching the exact count requested in the prompt")
 
 class TopicSummarySchema(BaseModel):
     key_concepts: List[str] = Field(description="3-5 short bullet points of the most important concepts in this topic")

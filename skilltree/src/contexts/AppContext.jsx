@@ -173,8 +173,11 @@ export function AppProvider({ children }) {
     return apiRequest(`/topics/${topicId}/resources/`)
   }
 
-  async function generateQuiz(topicId) {
-    return apiRequest(`/topics/${topicId}/generate-quiz/`, { method: 'POST' })
+  async function generateQuiz(topicId, numQuestions = 5) {
+    return apiRequest(`/topics/${topicId}/generate-quiz/`, { 
+      method: 'POST',
+      body: { num_questions: numQuestions },
+    })
   }
 
   async function submitQuizAttempt(topicId, score, totalQuestions) {

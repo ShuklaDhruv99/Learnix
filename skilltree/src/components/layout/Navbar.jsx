@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Menu, Bell, Flame, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../../contexts/AppContext'
-import SearchBar from '../common/SearchBar'
+// import SearchBar from '../common/SearchBar'
 import NotificationsPanel from '../common/NotificationsPanel'
 import ThemeToggle from '../common/ThemeToggle'
 
@@ -21,10 +21,10 @@ export default function Navbar() {
       >
         <Menu className="w-5 h-5" />
       </button>
-      <div className="hidden md:block flex-1 max-w-md">
+      {/* <div className="hidden md:block flex-1 max-w-md">
         <SearchBar />
       </div>
-      <div className="md:hidden flex-1" />
+      <div className="md:hidden flex-1" /> */}
       <div className="flex items-center gap-2 sm:gap-3 ml-auto">
         <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass text-sm">
           <Flame className="w-4 h-4 text-gold-bright" />
