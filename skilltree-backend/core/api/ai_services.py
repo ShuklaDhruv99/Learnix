@@ -2,7 +2,7 @@ import environ
 import os
 from django.conf import settings
 from langchain_google_genai import ChatGoogleGenerativeAI
-from .ai_schemas import SubjectTreeSchema
+from .ai_schemas import SubjectTreeSchema, QuizSchema, TopicSummarySchema
 from django.db import transaction
 from .models import Subject, Topic
 
@@ -111,3 +111,46 @@ def save_generated_tree(tree: SubjectTreeSchema, university=None, branch=None, s
             topic.prerequisites.set(prereq_objs)
 
     return subject
+
+def generate_quiz(topic_name, topic_description, difficulty, goal_mode):
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3.5-flash",
+        google_api_key=env('GOOGLE_API_KEY'),
+        temperature=0.5,
+    )
+    structured_llm = llm.with_structured_output(QuizSchema)
+
+    goal_hint = {
+        'pass': 'Keep questions basic and focused on core definitions and facts.',
+        'average': 'Mix basic recall questions with a couple of applied/practical questions.',
+        'topper': 'Include analytical, applied, and edge-case questions that test deep understanding, not just recall.',
+    }.get(goal_mode, 'Mix basic and applied questions.')
+
+    prompt = f"""Generate a 5-question multiple choice quiz for the topic "{topic_name}".
+    Topic description: {topic_description}
+    Topic difficulty level: {difficulty}
+    Student goal level: {goal_mode or 'average'}
+    {goal_hint}
+    Each question must have exactly 4 options, one correct answer (by index), and a brief explanation.
+    Base question difficulty on both the topic's difficulty level and the student goal guidance above.
+    """
+
+    return structured_llm.invoke(prompt)
+
+def generate_topic_summary(topic_name, topic_description, difficulty):
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3.5-flash",
+        google_api_key=env('GOOGLE_API_KEY'),
+        temperature=0.3,
+    )
+    structured_llm = llm.with_structured_output(TopicSummarySchema)
+
+    prompt = f"""Write a clear study overview for the topic "{topic_name}" (difficulty: {difficulty}).
+
+    Topic description: {topic_description}
+
+    Provide a short summary explaining the topic simply, plus 3-5 key concepts as bullet points.
+    Keep the tone clear and educational, suitable for a student encountering this topic.
+    """
+
+    return structured_llm.invoke(prompt)

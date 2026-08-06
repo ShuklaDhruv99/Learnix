@@ -163,6 +163,17 @@ export function AppProvider({ children }) {
     return apiRequest(`/topics/${topicId}/resources/`)
   }
 
+  async function generateQuiz(topicId) {
+    return apiRequest(`/topics/${topicId}/generate-quiz/`, { method: 'POST' })
+  }
+
+  async function submitQuizAttempt(topicId, score, totalQuestions) {
+    return apiRequest('/quiz-attempts/', {
+      method: 'POST',
+      body: { topic: topicId, score, total_questions: totalQuestions },
+    })
+  }
+
   async function generateSyllabus(file) {
     const formData = new FormData()
     formData.append('file', file)
@@ -252,6 +263,22 @@ export function AppProvider({ children }) {
     }
   }
 
+  async function getTopicChat(topicId) {
+    return apiRequest(`/topics/${topicId}/chat/`)
+  }
+
+  async function sendTopicChatMessage(topicId, message) {
+    return apiRequest(`/topics/${topicId}/chat/`, { method: 'POST', body: { message } })
+  }
+
+  async function clearTopicChat(topicId) {
+    return apiRequest(`/topics/${topicId}/chat/clear/`, { method: 'DELETE' })
+  }
+
+  async function getTopicSummary(topicId) {
+    return apiRequest(`/topics/${topicId}/generate-summary/`, { method: 'POST' })
+  }
+
   function logout() {
     clearTokens()
     setIsAuthenticated(false)
@@ -283,6 +310,8 @@ export function AppProvider({ children }) {
       enrollInSubject,
       fetchTopics,
       completeTopic,
+      generateQuiz,
+      submitQuizAttempt,
       logStudySession,
       resources,
       bookmarks,
@@ -306,7 +335,11 @@ export function AppProvider({ children }) {
       onboarding,
       fetchTopicResources,
       getTopicResources,
-      fetchAllMyTopics
+      fetchAllMyTopics,
+      getTopicChat,
+      sendTopicChatMessage,
+      clearTopicChat,
+      getTopicSummary
     }),
     [
       isAuthenticated,

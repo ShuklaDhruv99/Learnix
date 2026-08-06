@@ -1,17 +1,17 @@
 from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress, ChatMessage
+from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress, ChatMessage, QuizAttempt
 from .services import enroll_user_in_subject, complete_topic
 from django.shortcuts import get_object_or_404
-from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer, ChatMessageSerializer
+from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer, ChatMessageSerializer, QuizAttemptSerializer
 from rest_framework.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Sum
 from pypdf import PdfReader
 from rest_framework.parsers import MultiPartParser
-from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree
+from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree, generate_quiz, generate_topic_summary
 from .tutor_service import get_tutor_response
 from datetime import timedelta
 from django.utils import timezone
@@ -425,6 +425,19 @@ class AnalyticsView(APIView):
             level = 0 if count == 0 else 1 if count == 1 else 2 if count == 2 else 3 if count <= 4 else 4
             heatmap.append(level)
 
+        quiz_attempts = QuizAttempt.objects.filter(user=user).order_by('-taken_at')[:10]
+        quiz_history = [
+            {
+                'topic_name': qa.topic.name,
+                'score': qa.score,
+                'total': qa.total_questions,
+                'percentage': round((qa.score / qa.total_questions) * 100) if qa.total_questions else 0,
+                'taken_at': qa.taken_at.strftime('%b %d'),
+            }
+            for qa in quiz_attempts
+        ]
+        avg_quiz_score = round(sum(q['percentage'] for q in quiz_history) / len(quiz_history)) if quiz_history else None
+
         return Response({
             'weeklyStudyTime': weekly_study_time,
             'completionRate': completion_rate,
@@ -432,6 +445,8 @@ class AnalyticsView(APIView):
             'completionRadar': completion_radar,
             'subjectComparison': subject_comparison,
             'dailyActivityHeatmap': heatmap,
+            'quizHistory': quiz_history,
+            'avgQuizScore': avg_quiz_score,
         })
 
 class FetchTopicResourcesView(APIView):
@@ -474,3 +489,64 @@ class FetchTopicResourcesView(APIView):
             return Response({'topic_id': topic.id, 'resources_created': [], 'message': 'No new videos found — try again later.'})
 
         return Response({'topic_id': topic.id, 'resources_created': created})
+
+class GenerateQuizView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, topic_id):
+        topic = get_object_or_404(Topic, id=topic_id)
+        profile = request.user.profile
+
+        try:
+            quiz = generate_quiz(topic.name, topic.description, topic.difficulty, profile.goal_mode)
+        except Exception as e:
+            return Response({'error': f'Quiz generation failed: {str(e)}'}, status=502)
+
+        return Response({
+            'topic_id': topic.id,
+            'questions': [q.model_dump() for q in quiz.questions],
+        })
+
+class QuizAttemptCreateView(generics.CreateAPIView):
+    serializer_class = QuizAttemptSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class QuizAttemptListView(generics.ListAPIView):
+    serializer_class = QuizAttemptSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return QuizAttempt.objects.filter(user=self.request.user).order_by('-taken_at')
+
+class ClearTopicChatView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, topic_id):
+        topic = get_object_or_404(Topic, id=topic_id)
+        ChatMessage.objects.filter(user=request.user, topic=topic).delete()
+        return Response(status=204)
+
+class TopicSummaryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, topic_id):
+        topic = get_object_or_404(Topic, id=topic_id)
+
+        if topic.summary:
+            import json
+            return Response(json.loads(topic.summary))
+
+        try:
+            result = generate_topic_summary(topic.name, topic.description, topic.difficulty)
+        except Exception as e:
+            return Response({'error': f'Summary generation failed: {str(e)}'}, status=502)
+
+        data = {'summary': result.summary, 'key_concepts': result.key_concepts}
+        import json
+        topic.summary = json.dumps(data)
+        topic.save()
+
+        return Response(data)

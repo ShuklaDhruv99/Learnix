@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, ChatMessage
+from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, ChatMessage, QuizAttempt
 from django.db.models import Sum
 
 
@@ -170,3 +170,8 @@ class ChatMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatMessage
         fields = ['id', 'role', 'content', 'created_at']
+
+class QuizAttemptSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = QuizAttempt
+        fields = ['id', 'topic', 'score', 'total_questions', 'taken_at']

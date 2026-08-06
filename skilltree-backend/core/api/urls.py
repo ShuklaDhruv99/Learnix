@@ -3,7 +3,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
     SubjectListView, TopicListView, RegisterView, OnboardingView, EnrollView, CompleteTopicView, ResourceListView,
     BookmarkListCreateView, BookmarkDeleteView, AchievementListView, StudySessionCreateView, DashboardView, LeaderboardView,
-    SyllabusExtractView, SyllabusGenerateView, TopicChatView, AllResourcesListView, AnalyticsView, FetchTopicResourcesView
+    SyllabusExtractView, SyllabusGenerateView, TopicChatView, AllResourcesListView, AnalyticsView, FetchTopicResourcesView,
+    GenerateQuizView, QuizAttemptCreateView, QuizAttemptListView, ClearTopicChatView, TopicSummaryView
 )
 
 urlpatterns = [
@@ -28,4 +29,9 @@ urlpatterns = [
     path('resources/', AllResourcesListView.as_view(), name='all-resources'),
     path('analytics/', AnalyticsView.as_view(), name='analytics'),
     path('topics/<int:topic_id>/fetch-resources/', FetchTopicResourcesView.as_view(), name='topic-fetch-resources'),
+    path('topics/<int:topic_id>/generate-quiz/', GenerateQuizView.as_view(), name='generate-quiz'),
+    path('quiz-attempts/', QuizAttemptCreateView.as_view(), name='quiz-attempt-create'),
+    path('quiz-attempts/history/', QuizAttemptListView.as_view(), name='quiz-attempt-history'),
+    path('topics/<int:topic_id>/chat/clear/', ClearTopicChatView.as_view(), name='topic-chat-clear'),
+    path('topics/<int:topic_id>/generate-summary/', TopicSummaryView.as_view(), name='topic-summary'),
 ]

@@ -63,6 +63,10 @@ def get_tutor_response(user, topic, progress, user_message):
     Answer their questions clearly, adapt your explanations to a student at this stage,
     and keep responses focused and not overly long. If completion is low, be extra patient
     with fundamentals. If completion is high, you can go deeper or suggest practice problems.
+
+    Format your responses in plain Markdown (bold, headers, bullet lists, code blocks are fine).
+    Do NOT use LaTeX notation (no $ symbols for math) — write mathematical notation in plain text
+    or code format instead, e.g. write "Sigma" or `Σ` rather than "$\\Sigma$".
     """
 
     prompt = ChatPromptTemplate.from_messages([

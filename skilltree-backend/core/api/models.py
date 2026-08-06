@@ -87,6 +87,7 @@ class Topic(models.Model):
     xp = models.PositiveIntegerField(default=100)
     icon = models.CharField(max_length=50, blank=True)
     is_boss = models.BooleanField(default=False)
+    summary = models.TextField(blank=True, null=True)
 
     # Layout hints for the React Flow visualization
     position_x = models.IntegerField(default=0)
@@ -213,3 +214,13 @@ class ChatMessage(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.topic.name} - {self.role}"
+
+class QuizAttempt(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_attempts')
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='quiz_attempts')
+    score = models.PositiveIntegerField()  # number correct
+    total_questions = models.PositiveIntegerField()
+    taken_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.topic.name} - {self.score}/{self.total_questions}"

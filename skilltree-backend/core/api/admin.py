@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Profile, Subject, Topic, UserTopicProgress, Resource, Bookmark, Achievement, UserAchievement, StudySession, ChatMessage
+from .models import Profile, Subject, Topic, UserTopicProgress, Resource, Bookmark, Achievement, UserAchievement, StudySession, ChatMessage, QuizAttempt
 
 # Register your models here.
 admin.site.register(Profile)
@@ -19,3 +19,4 @@ admin.site.register(Achievement)
 admin.site.register(UserAchievement)
 admin.site.register(StudySession)
 admin.site.register(ChatMessage)
+admin.site.register(QuizAttempt)

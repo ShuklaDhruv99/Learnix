@@ -9,6 +9,9 @@ import { getIcon } from '../utils/iconMap'
 import { difficultyColor } from '../utils/xp'
 import { useApp } from '../contexts/AppContext'
 import { stagger, fadeUp } from '../animations/variants'
+import QuizSection from '../components/skilltree/QuizSection'
+import TutorChat from '../components/skilltree/TutorChat'
+import TopicSummary from '../components/skilltree/TopicSummary'
 
 const TIME_OPTIONS = [15, 30, 60]
 
@@ -223,7 +226,9 @@ export default function TopicPage() {
           )}
         </Card>
       </motion.div>
-
+      <motion.div variants={fadeUp}>
+        <TopicSummary topicId={numericTopicId} />
+      </motion.div>
       <motion.div variants={fadeUp}>
         <Card className="p-6 sm:p-8">
           <div className="flex items-center justify-between mb-4">
@@ -268,6 +273,12 @@ export default function TopicPage() {
             </div>
           )}
         </Card>
+      </motion.div>
+      <motion.div variants={fadeUp}>
+        <QuizSection topicId={numericTopicId} />
+      </motion.div>
+      <motion.div variants={fadeUp}>
+        <TutorChat topicId={numericTopicId} />
       </motion.div>
     </motion.div>
   )

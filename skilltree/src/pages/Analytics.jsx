@@ -121,6 +121,23 @@ export default function Analytics() {
           </AnalyticsCard>
         </motion.div>
 
+        <motion.div variants={fadeUp}>
+          <AnalyticsCard title="Quiz Performance" subtitle={analytics.avgQuizScore !== null ? `${analytics.avgQuizScore}% average` : 'No quizzes yet'}>
+            {analytics.quizHistory.length === 0 ? (
+              <p className="text-xs text-white/30 py-8 text-center">Take a practice quiz on any topic to see your history here.</p>
+            ) : (
+              <div className="space-y-2">
+                {analytics.quizHistory.map((q, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs py-2 border-b border-white/[0.06] last:border-0">
+                    <span className="text-white/60">{q.topic_name}</span>
+                    <span className="font-mono text-white/40">{q.score}/{q.total} · {q.taken_at}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </AnalyticsCard>
+        </motion.div>
+
         <motion.div variants={fadeUp} className="lg:col-span-2">
           <AnalyticsCard title="Hours by Subject" subtitle="Total time invested">
             <ResponsiveContainer width="100%" height={220}>
