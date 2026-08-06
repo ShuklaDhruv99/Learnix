@@ -19,6 +19,7 @@ import Bookmarks from './pages/Bookmarks'
 import Profile from './pages/Profile'
 import Settings from './pages/Settings'
 import SyllabusUpload from './pages/SyllabusUpload'
+import TopicPage from './pages/TopicPage'
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="/app/profile" element={<Profile />} />
             <Route path="/app/settings" element={<Settings />} />
             <Route path="/app/syllabus-upload" element={<SyllabusUpload />} />
+            <Route path="/app/topics/:topicId" element={<TopicPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

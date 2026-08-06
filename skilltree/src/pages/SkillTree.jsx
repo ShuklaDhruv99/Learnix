@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
   ReactFlow,
   Background,
@@ -13,7 +13,6 @@ import '@xyflow/react/dist/style.css'
 import { motion } from 'framer-motion'
 import { GitBranch, Crown, Circle } from 'lucide-react'
 import SkillNode from '../components/skilltree/SkillNode'
-import TopicDrawer from '../components/skilltree/TopicDrawer'
 import Breadcrumb from '../components/common/Breadcrumb'
 import { useApp } from '../contexts/AppContext'
 
@@ -85,11 +84,11 @@ const EDGE_COLOR = {
 export default function SkillTree() {
   const [searchParams] = useSearchParams()
   const subjectId = searchParams.get('subject')
+  const navigate = useNavigate()
   const { fetchTopics, subjects } = useApp()
 
   const [topicsData, setTopicsData] = useState([])
   const [loading, setLoading] = useState(true)
-  const [openTopicId, setOpenTopicId] = useState(null)
 
   const subject = subjects.find((s) => String(s.id) === String(subjectId))
 
@@ -114,7 +113,10 @@ export default function SkillTree() {
     loadTopics()
   }, [subjectId])
 
-  const handleOpen = useCallback((id) => setOpenTopicId(id), [])
+  const handleOpen = useCallback(
+    (id) => navigate(`/app/topics/${id}?subject=${subjectId}`),
+    [navigate, subjectId]
+  )
 
   const initialNodes = useMemo(
     () =>
@@ -224,14 +226,6 @@ export default function SkillTree() {
           <Crown className="w-3.5 h-3.5 text-red-400" /> Boss node awaits at the end of the path
         </div>
       </motion.div>
-
-      <TopicDrawer
-        topicId={openTopicId}
-        open={!!openTopicId}
-        onClose={() => setOpenTopicId(null)}
-        topicsData={topicsData}
-        onTopicCompleted={() => loadTopics(false)}
-      />
     </div>
   )
 }

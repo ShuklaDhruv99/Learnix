@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import Subject, Topic, UserTopicProgress, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, ChatMessage
+from django.db.models import Sum
 
 
 class SubjectSerializer(serializers.ModelSerializer):
@@ -66,7 +67,16 @@ class TopicSerializer(serializers.ModelSerializer):
 
     def get_completion(self, obj):
         progress = self.get_progress(obj)
-        return progress.completion_pct if progress else 0
+        if progress and progress.status == 'completed':
+            return 100
+        if not obj.estimated_hours:
+            return 0
+        total_minutes = StudySession.objects.filter(
+            user=self.context['request'].user, topic=obj
+        ).aggregate(total=Sum('minutes'))['total'] or 0
+        estimated_minutes = obj.estimated_hours * 60
+        pct = round((total_minutes / estimated_minutes) * 100)
+        return min(pct, 99)  # cap below 100 until actually marked complete
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)

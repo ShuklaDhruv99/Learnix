@@ -145,6 +145,16 @@ export function AppProvider({ children }) {
     return result
   }
 
+  async function logStudySession(topicId, minutes) {
+    const today = new Date().toISOString().split('T')[0]
+    await apiRequest('/study-sessions/', {
+      method: 'POST',
+      body: { topic: topicId, minutes, date: today },
+    })
+    await refreshDashboard()
+    await refreshSubjects()
+  }
+
   async function fetchTopicResources(topicId) {
     return apiRequest(`/topics/${topicId}/fetch-resources/`, { method: 'POST' })
   }
@@ -273,6 +283,7 @@ export function AppProvider({ children }) {
       enrollInSubject,
       fetchTopics,
       completeTopic,
+      logStudySession,
       resources,
       bookmarks,
       refreshResources,
