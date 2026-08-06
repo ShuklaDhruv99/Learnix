@@ -22,7 +22,6 @@ const navItems = [
   { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/app/subjects', label: 'Subjects', icon: BookOpen },
   { to: '/app/syllabus-upload', label: 'Generate Tree', icon: UploadCloud },
-  { to: '/app/skill-tree', label: 'Skill Tree', icon: GitBranch },
   { to: '/app/resources', label: 'Resources', icon: Library },
   { to: '/app/achievements', label: 'Achievements', icon: Award },
   { to: '/app/analytics', label: 'Analytics', icon: BarChart3 },

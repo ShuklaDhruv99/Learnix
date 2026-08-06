@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress, ChatMessage, QuizAttempt
 from .services import enroll_user_in_subject, complete_topic,  unlock_achievement
 from django.shortcuts import get_object_or_404
-from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer, ChatMessageSerializer, QuizAttemptSerializer
+from .serializers import MyProfileSerializer, SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer, ChatMessageSerializer, QuizAttemptSerializer
 from rest_framework.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
@@ -378,10 +378,12 @@ class AnalyticsView(APIView):
         completed = all_progress.filter(status='completed').count()
         completion_rate = round((completed / total) * 100) if total > 0 else 0
 
-        # XP timeline (last 9 weeks, cumulative)
-        nine_weeks_ago = today - timedelta(weeks=9)
+        # XP timeline (last 9 weeks, cumulative, ending with the current week)
+        current_week_start = today - timedelta(days=today.weekday())
+        week_starts = [current_week_start - timedelta(weeks=(8 - i)) for i in range(9)]
+
         completed_progress = UserTopicProgress.objects.filter(
-            user=user, status='completed', completed_on__gte=nine_weeks_ago
+            user=user, status='completed', completed_on__gte=week_starts[0]
         ).select_related('topic')
 
         xp_by_week = defaultdict(int)
@@ -392,10 +394,9 @@ class AnalyticsView(APIView):
 
         xp_timeline = []
         cumulative = 0
-        for i in range(9):
-            week_date = (nine_weeks_ago - timedelta(days=nine_weeks_ago.weekday())) + timedelta(weeks=i)
-            cumulative += xp_by_week.get(week_date, 0)
-            xp_timeline.append({'date': week_date.strftime('%b %d'), 'xp': cumulative})
+        for week_start in week_starts:
+            cumulative += xp_by_week.get(week_start, 0)
+            xp_timeline.append({'date': week_start.strftime('%b %d'), 'xp': cumulative})
 
         # Subject mastery radar + hours by subject
         subjects = Subject.objects.filter(topics__user_progress__user=user).distinct()
@@ -566,3 +567,10 @@ class QuizAttemptCreateView(generics.CreateAPIView):
         total_attempts = QuizAttempt.objects.filter(user=self.request.user).count()
         if total_attempts >= 5:
             unlock_achievement(self.request.user, 'Quiz Master')
+
+class MyProfileView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = MyProfileSerializer(request.user.profile)
+        return Response(serializer.data)

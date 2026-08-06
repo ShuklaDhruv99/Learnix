@@ -93,6 +93,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+class MyProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = [
+            'username', 'email', 'level', 'xp', 'total_xp', 'streak_days',
+            'education_type', 'board', 'medium', 'class_name', 'stream',
+            'university', 'branch', 'semester', 'goal_mode',
+        ]
 
 class OnboardingSerializer(serializers.ModelSerializer):
     class Meta:

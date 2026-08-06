@@ -39,6 +39,16 @@ export function AppProvider({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [analytics, setAnalytics] = useState(null)
+  const [myProfile, setMyProfile] = useState(null)
+  
+  async function refreshMyProfile() {
+    try {
+      const data = await apiRequest('/my-profile/')
+      setMyProfile(data)
+    } catch (err) {
+      console.error('Failed to load profile details', err)
+    }
+  }
 
   async function refreshAnalytics() {
     try {
@@ -191,6 +201,7 @@ export function AppProvider({ children }) {
       refreshAchievements()
       refreshLeaderboard()
       refreshAnalytics()
+      refreshMyProfile()
     } else {
       setDashboard(null)
       setSubjects([])
@@ -199,6 +210,7 @@ export function AppProvider({ children }) {
       setAchievements([])
       setLeaderboard([])
       setAnalytics(null)
+      setMyProfile(null)
     }
   }, [isAuthenticated])
 
@@ -339,7 +351,9 @@ export function AppProvider({ children }) {
       getTopicChat,
       sendTopicChatMessage,
       clearTopicChat,
-      getTopicSummary
+      getTopicSummary,
+      refreshMyProfile,
+      myProfile
     }),
     [
       isAuthenticated,
@@ -358,6 +372,7 @@ export function AppProvider({ children }) {
       onboarding,
       sidebarOpen,
       mobileNavOpen,
+      myProfile
     ]
   )
 
@@ -368,12 +383,4 @@ export function useApp() {
   const ctx = useContext(AppContext)
   if (!ctx) throw new Error('useApp must be used within AppProvider')
   return ctx
-}
-
-async function fetchAllMyTopics() {
-  const enrolledSubjects = subjects.filter((s) => s.is_enrolled)
-  const topicLists = await Promise.all(enrolledSubjects.map((s) => fetchTopics(s.id)))
-  return topicLists.flatMap((topics, i) =>
-    topics.map((t) => ({ ...t, subjectName: enrolledSubjects[i].name }))
-  )
 }

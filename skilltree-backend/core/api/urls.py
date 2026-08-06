@@ -4,7 +4,7 @@ from .views import (
     SubjectListView, TopicListView, RegisterView, OnboardingView, EnrollView, CompleteTopicView, ResourceListView,
     BookmarkListCreateView, BookmarkDeleteView, AchievementListView, StudySessionCreateView, DashboardView, LeaderboardView,
     SyllabusExtractView, SyllabusGenerateView, TopicChatView, AllResourcesListView, AnalyticsView, FetchTopicResourcesView,
-    GenerateQuizView, QuizAttemptCreateView, QuizAttemptListView, ClearTopicChatView, TopicSummaryView
+    GenerateQuizView, QuizAttemptCreateView, QuizAttemptListView, ClearTopicChatView, TopicSummaryView, MyProfileView
 )
 
 urlpatterns = [
@@ -34,4 +34,5 @@ urlpatterns = [
     path('quiz-attempts/history/', QuizAttemptListView.as_view(), name='quiz-attempt-history'),
     path('topics/<int:topic_id>/chat/clear/', ClearTopicChatView.as_view(), name='topic-chat-clear'),
     path('topics/<int:topic_id>/generate-summary/', TopicSummaryView.as_view(), name='topic-summary'),
+    path('my-profile/', MyProfileView.as_view(), name='my-profile'),
 ]
