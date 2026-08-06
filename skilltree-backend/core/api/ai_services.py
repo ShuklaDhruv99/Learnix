@@ -12,7 +12,7 @@ environ.Env.read_env(os.path.join(settings.BASE_DIR, '.env'))
 
 def generate_syllabus_tree(syllabus_text):
     llm = ChatGoogleGenerativeAI(
-        model="gemini-3.5-flash",
+        model="gemini-3.1-flash-lite",
         google_api_key=env('GOOGLE_API_KEY'),
         temperature=0.3,
     )
@@ -114,7 +114,7 @@ def save_generated_tree(tree: SubjectTreeSchema, university=None, branch=None, s
 
 def generate_quiz(topic_name, topic_description, difficulty, goal_mode):
     llm = ChatGoogleGenerativeAI(
-        model="gemini-3.5-flash",
+        model="gemini-3.1-flash-lite",
         google_api_key=env('GOOGLE_API_KEY'),
         temperature=0.5,
     )
@@ -139,7 +139,7 @@ def generate_quiz(topic_name, topic_description, difficulty, goal_mode):
 
 def generate_topic_summary(topic_name, topic_description, difficulty):
     llm = ChatGoogleGenerativeAI(
-        model="gemini-3.5-flash",
+        model="gemini-3.1-flash-lite",
         google_api_key=env('GOOGLE_API_KEY'),
         temperature=0.3,
     )

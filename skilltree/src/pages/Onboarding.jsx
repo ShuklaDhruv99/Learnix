@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from 'lucide-react'
@@ -27,9 +27,14 @@ export default function Onboarding() {
   const data = onboarding
   const update = (patch) => setOnboarding((prev) => ({ ...prev, ...patch }))
 
+  useEffect(() => {
+    if (isAuthenticated && data.completed) {
+      navigate('/app')
+    }
+  }, [])
+
   const detailStepNeeded = SPECCED_TYPES.includes(data.learnerType)
 
-  // Build the step key sequence based on whether an account already exists
   const steps = isAuthenticated
     ? (detailStepNeeded ? ['who', 'detail', 'goal'] : ['who', 'goal'])
     : (detailStepNeeded ? ['account', 'who', 'detail', 'goal'] : ['account', 'who', 'goal'])

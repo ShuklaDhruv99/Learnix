@@ -2,7 +2,7 @@ from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress, ChatMessage, QuizAttempt
-from .services import enroll_user_in_subject, complete_topic
+from .services import enroll_user_in_subject, complete_topic,  unlock_achievement
 from django.shortcuts import get_object_or_404
 from .serializers import SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer, ChatMessageSerializer, QuizAttemptSerializer
 from rest_framework.exceptions import ValidationError
@@ -299,7 +299,9 @@ class SyllabusGenerateView(APIView):
         )
 
         # 5. Auto-enroll the requesting user
+        # Auto-enroll the requesting user
         enroll_user_in_subject(request.user, subject)
+        unlock_achievement(request.user, 'Syllabus Creator')
 
         return Response({
             'subject_id': subject.id,
@@ -550,3 +552,17 @@ class TopicSummaryView(APIView):
         topic.save()
 
         return Response(data)
+
+class QuizAttemptCreateView(generics.CreateAPIView):
+    serializer_class = QuizAttemptSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        attempt = serializer.save(user=self.request.user)
+
+        if attempt.score == attempt.total_questions:
+            unlock_achievement(self.request.user, 'Quiz Ace')
+
+        total_attempts = QuizAttempt.objects.filter(user=self.request.user).count()
+        if total_attempts >= 5:
+            unlock_achievement(self.request.user, 'Quiz Master')

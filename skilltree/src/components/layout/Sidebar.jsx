@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -36,12 +36,12 @@ function SidebarContent({ onNavigate }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center gap-2.5 px-5 h-16 shrink-0">
+      <Link to="/" className="flex items-center gap-2.5 px-5 h-16 shrink-0 hover:opacity-80 transition-opacity">
         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-bright to-blue flex items-center justify-center shadow-glow-emerald">
           <Sparkles className="w-4.5 h-4.5 text-base-950" />
         </div>
         <span className="font-display font-bold text-lg tracking-tight">Learnix</span>
-      </div>
+      </Link>
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => (

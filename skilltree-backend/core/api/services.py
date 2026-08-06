@@ -91,12 +91,22 @@ def unlock_achievement(user, achievement_name):
 
 
 def check_achievements_on_topic_complete(user):
-    """Run all achievement checks relevant to completing a topic."""
     completed_count = UserTopicProgress.objects.filter(user=user, status='completed').count()
 
-    if completed_count == 1:
+    if completed_count >= 1:
         unlock_achievement(user, 'First Topic')
 
-    # Add more rules here as you define more achievements, e.g.:
-    # if completed_count == 10:
-    #     unlock_achievement(user, 'Ten Topics')
+    if completed_count >= 5:
+        unlock_achievement(user, '5 Topics Completed')
+
+    from .models import Subject
+    subjects_with_progress = Subject.objects.filter(topics__user_progress__user=user).distinct()
+    for subject in subjects_with_progress:
+        total = UserTopicProgress.objects.filter(user=user, topic__subject=subject).count()
+        completed = UserTopicProgress.objects.filter(user=user, topic__subject=subject, status='completed').count()
+        if total > 0 and total == completed:
+            unlock_achievement(user, 'Subject Complete')
+            break
+
+    if user.profile.level >= 5:
+        unlock_achievement(user, 'Level 5')

@@ -23,6 +23,7 @@ import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
 import { fadeUp, stagger } from '../animations/variants'
 import { accentMap } from '../utils/xp'
+import { useApp } from '../contexts/AppContext'
 
 const features = [
   { icon: Gamepad2, title: 'Gamified Learning', desc: 'XP, levels, and coins turn every topic into a mission worth finishing.', accent: 'emerald' },
@@ -55,41 +56,57 @@ const testimonials = [
 
 export default function Landing() {
   const [mobileMenu, setMobileMenu] = useState(false)
+  const { isAuthenticated, currentUser } = useApp()
+  const getStartedLink = isAuthenticated ? '/app' : '/register'
 
   return (
     <div className="relative">
       {/* Nav */}
       <header className="sticky top-0 z-40 border-b border-white/[0.06] bg-base-950/70 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
+          <Link to="/" className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-bright to-blue flex items-center justify-center shadow-glow-emerald">
               <Sparkles className="w-4.5 h-4.5 text-base-950" />
             </div>
             <span className="font-display font-bold text-lg tracking-tight">Learnix</span>
-          </div>
+          </Link>
           <nav className="hidden md:flex items-center gap-8 text-sm text-white/60">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
             <a href="#testimonials" className="hover:text-white transition-colors">Reviews</a>
           </nav>
           <div className="hidden md:flex items-center gap-3">
-            <Link to="/app" className="text-sm text-white/60 hover:text-white transition-colors px-3">Explore Demo</Link>
-            <Link to="/onboarding">
-              <Button size="sm">Get Started</Button>
-            </Link>
+            {isAuthenticated ? (
+              <span className="text-sm text-white/70 px-3">
+                Signed in as <span className="text-emerald-bright font-medium">{currentUser?.username}</span>
+              </span>
+            ) : (
+              <>
+                <Link to="/app" className="text-sm text-white/60 hover:text-white transition-colors px-3">Explore Demo</Link>
+                <Link to={getStartedLink}>
+                  <Button size="sm">Get Started</Button>
+                </Link>
+              </>
+            )}
           </div>
           <button className="md:hidden p-2" onClick={() => setMobileMenu((m) => !m)} aria-label="Menu">
             <Menu className="w-5 h-5" />
           </button>
         </div>
-        {mobileMenu && (
-          <div className="md:hidden px-5 pb-4 flex flex-col gap-3 border-t border-white/10 pt-4">
-            <a href="#features" className="text-sm text-white/60">Features</a>
-            <a href="#how-it-works" className="text-sm text-white/60">How it Works</a>
-            <Link to="/app" className="text-sm text-white/60">Explore Demo</Link>
-            <Link to="/onboarding"><Button size="sm" className="w-full">Get Started</Button></Link>
-          </div>
-        )}
+        {/* <div className="hidden md:flex items-center gap-3">
+            {isAuthenticated ? (
+              <span className="text-sm text-white/70 px-3">
+                Signed in as <span className="text-emerald-bright font-medium">{currentUser?.username}</span>
+              </span>
+            ) : (
+              <>
+                <Link to="/app" className="text-sm text-white/60 hover:text-white transition-colors px-3">Explore Demo</Link>
+                <Link to={getStartedLink}>
+                  <Button size="sm">Get Started</Button>
+                </Link>
+              </>
+            )}
+          </div> */}
       </header>
 
       {/* Hero */}
@@ -108,12 +125,14 @@ export default function Landing() {
               Stop memorizing boring syllabi. Level up your knowledge through an interactive Skill Tree built from your actual coursework.
             </motion.p>
             <motion.div variants={fadeUp} className="mt-9 flex flex-wrap gap-4">
-              <Link to="/onboarding">
-                <Button size="lg" iconRight={ArrowRight}>Get Started</Button>
+              <Link to={getStartedLink}>
+                <Button size="lg" iconRight={ArrowRight}>{isAuthenticated ? 'Go to Dashboard' : 'Get Started'}</Button>
               </Link>
-              <Link to="/app">
-                <Button size="lg" variant="secondary" icon={PlayCircle}>Explore Demo</Button>
-              </Link>
+              {!isAuthenticated && (
+                <Link to="/app">
+                  <Button size="lg" variant="secondary" icon={PlayCircle}>Explore Demo</Button>
+                </Link>
+              )}
             </motion.div>
             <motion.div variants={fadeUp} className="mt-10 flex items-center gap-6 text-xs text-white/30 font-mono">
               <span>No credit card</span>
@@ -238,8 +257,8 @@ export default function Landing() {
           <h2 className="font-display font-bold text-3xl sm:text-4xl relative">Ready to level up your syllabus?</h2>
           <p className="text-white/45 mt-3 relative">Set up your skill tree in under two minutes.</p>
           <div className="relative mt-8 flex justify-center">
-            <Link to="/onboarding">
-              <Button size="lg" iconRight={ChevronRight}>Start Your Journey</Button>
+            <Link to={getStartedLink}>
+              <Button size="lg" iconRight={ChevronRight}>{isAuthenticated ? 'Go to Dashboard' : 'Start Your Journey'}</Button>
             </Link>
           </div>
         </Card>
