@@ -1,4 +1,0 @@
-{
-  "resources": ["r1", "r4", "r5", "r8"],
-  "topics": ["t_hooks", "t_redux"]
-}
