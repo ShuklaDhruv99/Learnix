@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import (
-    SubjectListView, TopicListView, RegisterView, OnboardingView, EnrollView, CompleteTopicView, ResourceListView,
+    SettingsView, SubjectListView, TopicListView, RegisterView, OnboardingView, EnrollView, CompleteTopicView, ResourceListView,
     BookmarkListCreateView, BookmarkDeleteView, AchievementListView, StudySessionCreateView, DashboardView, LeaderboardView,
     SyllabusExtractView, SyllabusGenerateView, TopicChatView, AllResourcesListView, AnalyticsView, FetchTopicResourcesView,
     GenerateQuizView, QuizAttemptCreateView, QuizAttemptListView, ClearTopicChatView, TopicSummaryView, MyProfileView,
@@ -38,4 +38,5 @@ urlpatterns = [
     path('my-profile/', MyProfileView.as_view(), name='my-profile'),
     path('topics/<int:topic_id>/generate-code-practice/', GenerateCodePracticeView.as_view(), name='generate-code-practice'),
     path('review-code-attempt/', ReviewCodeAttemptView.as_view(), name='review-code-attempt'),
+    path('settings/', SettingsView.as_view(), name='settings'),
 ]

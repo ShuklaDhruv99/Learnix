@@ -100,7 +100,7 @@ class MyProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            'username', 'email', 'level', 'xp', 'total_xp', 'streak_days',
+            'username', 'email', 'display_name', 'level', 'xp', 'total_xp', 'streak_days',
             'education_type', 'board', 'medium', 'class_name', 'stream',
             'university', 'branch', 'semester', 'goal_mode',
         ]
@@ -186,3 +186,8 @@ class QuizAttemptSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuizAttempt
         fields = ['id', 'topic', 'score', 'total_questions', 'taken_at']
+
+class SettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['bio', 'display_name']

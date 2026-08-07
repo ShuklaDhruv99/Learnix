@@ -35,6 +35,7 @@ class Profile(models.Model):
     semester = models.PositiveIntegerField(null=True,blank=True)
     goal_mode = models.CharField(max_length=20,choices=GOAL_MODES,null=True,blank=True)
     onboarding_completed = models.BooleanField(default=False)
+    display_name = models.CharField(max_length=100, blank=True)
 
     # Profile
     bio = models.TextField(blank=True)

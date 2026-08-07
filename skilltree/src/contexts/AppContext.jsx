@@ -282,6 +282,14 @@ export function AppProvider({ children }) {
     })
   }
 
+  async function getSettings() {
+    return apiRequest('/settings/')
+  }
+
+  async function saveSettings(payload) {
+    return apiRequest('/settings/', { method: 'PATCH', body: payload })
+  }
+
   useEffect(() => {
     if (isAuthenticated) {
       refreshDashboard()
@@ -435,6 +443,8 @@ export function AppProvider({ children }) {
       exitDemoMode,
       demoNotice,
       dismissDemoNotice,
+      getSettings,
+      saveSettings
     }),
     [
       isAuthenticated,

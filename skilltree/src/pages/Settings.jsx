@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Settings as SettingsIcon, Bell, Globe, Moon, User, Shield } from 'lucide-react'
 import Card from '../components/ui/Card'
@@ -29,11 +29,42 @@ function ToggleRow({ icon: Icon, title, desc, checked, onChange }) {
 }
 
 export default function SettingsPage() {
-  const { currentUser } = useApp()
+  const { currentUser, getSettings, saveSettings, refreshMyProfile } = useApp()
   const [notifications, setNotifications] = useState(true)
   const [dailyReminders, setDailyReminders] = useState(true)
   const [darkMode, setDarkMode] = useState(true)
   const [language, setLanguage] = useState('English')
+
+  const [bio, setBio] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [bioLoading, setBioLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState(null)
+
+  useEffect(() => {
+    getSettings()
+      .then((data) => {
+        setBio(data.bio || '')
+        setDisplayName(data.display_name || '')
+      })
+      .catch((err) => console.error('Failed to load settings', err))
+      .finally(() => setBioLoading(false))
+  }, [])
+
+  async function handleSaveProfile() {
+    setSaving(true)
+    setSaveMessage(null)
+    try {
+      await saveSettings({ bio, display_name: displayName })
+      await refreshMyProfile()
+      setSaveMessage('Saved!')
+    } catch (err) {
+      setSaveMessage('Failed to save — try again.')
+    } finally {
+      setSaving(false)
+      setTimeout(() => setSaveMessage(null), 3000)
+    }
+  }
 
   return (
     <motion.div variants={stagger(0.06)} initial="hidden" animate="show" className="space-y-6 max-w-3xl">
@@ -52,18 +83,40 @@ export default function SettingsPage() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-white/40 mb-1.5 block">Display Name</label>
-              <input defaultValue={currentUser?.username || ''} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50" />
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder={bioLoading ? 'Loading...' : 'How should we display your name?'}
+                disabled={bioLoading}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50 disabled:opacity-50"
+              />
             </div>
             <div>
-              <label className="text-xs text-white/40 mb-1.5 block">Username</label>
-              <input defaultValue={`@${currentUser?.username || ''}`} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50" />
+            <label className="text-xs text-white/40 mb-1.5 block">Username</label>
+              <input
+                value={`@${currentUser?.username || ''}`}
+                disabled
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm text-white/40 cursor-not-allowed"
+              />
             </div>
           </div>
           <div className="mt-4">
             <label className="text-xs text-white/40 mb-1.5 block">Bio</label>
-            <textarea defaultValue="" rows={3} className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50 resize-none" />
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              rows={3}
+              placeholder={bioLoading ? 'Loading...' : 'Tell us a bit about yourself...'}
+              disabled={bioLoading}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-sm focus:outline-none focus:ring-1 focus:ring-emerald/50 resize-none disabled:opacity-50"
+            />
           </div>
-          <Button size="sm" className="mt-4">Save Changes</Button>
+          <div className="mt-4 flex items-center gap-3">
+            <Button size="sm" onClick={handleSaveProfile} disabled={saving || bioLoading}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+            {saveMessage && <span className="text-xs text-emerald-bright">{saveMessage}</span>}
+          </div>
         </Card>
       </motion.div>
 

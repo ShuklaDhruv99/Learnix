@@ -9,7 +9,7 @@ import { useApp } from '../contexts/AppContext'
 import { stagger, fadeUp } from '../animations/variants'
 
 export default function Dashboard() {
-  const { dashboard, dashboardLoading, currentUser } = useApp()
+  const { dashboard, dashboardLoading, currentUser, myProfile } = useApp()
 
   if (dashboardLoading || !dashboard) {
     return (
@@ -20,6 +20,10 @@ export default function Dashboard() {
   }
 
   const { profile, todays_mission, overall_progress, weekly_goal_minutes, weekly_progress_minutes, recently_completed } = dashboard
+
+  const isNewUser = profile.created_at
+    ? (Date.now() - new Date(profile.created_at).getTime()) < 10 * 60 * 1000 // created within the last 10 minutes
+    : false
 
   const statCards = [
     { label: 'Current Level', value: profile.level, icon: Sparkles, accent: 'emerald', suffix: '' },
@@ -39,7 +43,10 @@ export default function Dashboard() {
     <motion.div variants={stagger(0.06)} initial="hidden" animate="show" className="space-y-6">
       <motion.div variants={fadeUp} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="font-display font-bold text-2xl sm:text-3xl">Welcome back, {currentUser?.username || 'Learner'}</h1>
+        <h1 className="font-display font-bold text-2xl sm:text-3xl">
+          {isNewUser ? `Welcome, ${myProfile?.display_name || currentUser?.username || 'Learner'}!`
+            : `Welcome back, ${myProfile?.display_name || currentUser?.username || 'Learner'}`}
+        </h1>
           <p className="text-white/40 text-sm mt-1">Here's where your journey stands today.</p>
         </div>
         <Link to="/app/skill-tree">

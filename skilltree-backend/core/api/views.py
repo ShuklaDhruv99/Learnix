@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from .models import Subject, Topic, Profile, Resource, Bookmark, Achievement, UserAchievement, StudySession, UserTopicProgress, ChatMessage, QuizAttempt
 from .services import enroll_user_in_subject, complete_topic,  unlock_achievement
 from django.shortcuts import get_object_or_404
-from .serializers import MyProfileSerializer, SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer, ChatMessageSerializer, QuizAttemptSerializer
+from .serializers import MyProfileSerializer, SettingsSerializer, SubjectSerializer, TopicSerializer, RegisterSerializer, OnboardingSerializer, ResourceSerializer, BookmarkSerializer, AchievementSerializer, StudySessionSerializer, LeaderboardEntrySerializer, ChatMessageSerializer, QuizAttemptSerializer
 from rest_framework.exceptions import ValidationError
 from datetime import timedelta
 from django.utils import timezone
@@ -213,6 +213,7 @@ class DashboardView(APIView):
                 'xp': profile.xp,
                 'xp_to_next_level': profile.level * 1000 - profile.xp,
                 'streak_days': profile.streak_days,
+                'created_at': profile.created_at.isoformat(),
             },
         })
 
@@ -625,3 +626,16 @@ class ReviewCodeAttemptView(APIView):
             return Response({'error': f'Feedback generation failed: {str(e)}'}, status=502)
 
         return Response({'feedback': feedback})
+
+class SettingsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        serializer = SettingsSerializer(request.user.profile)
+        return Response(serializer.data)
+
+    def patch(self, request):
+        serializer = SettingsSerializer(request.user.profile, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
