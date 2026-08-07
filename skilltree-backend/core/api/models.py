@@ -217,10 +217,13 @@ class ChatMessage(models.Model):
 
 class QuizAttempt(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='quiz_attempts')
-    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='quiz_attempts')
-    score = models.PositiveIntegerField()  # number correct
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name='quiz_attempts', null=True, blank=True)
+    subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='quiz_attempts', null=True, blank=True)
+    is_mock_exam = models.BooleanField(default=False)
+    score = models.PositiveIntegerField()
     total_questions = models.PositiveIntegerField()
     taken_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.topic.name} - {self.score}/{self.total_questions}"
+        label = self.topic.name if self.topic else f"{self.subject.name} (Mock Exam)" if self.subject else "Exam"
+        return f"{self.user.username} - {label} - {self.score}/{self.total_questions}"

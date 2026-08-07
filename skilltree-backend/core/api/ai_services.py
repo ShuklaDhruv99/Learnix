@@ -158,3 +158,75 @@ def generate_topic_summary(topic_name, topic_description, difficulty):
     """
 
     return structured_llm.invoke(prompt)
+
+from .ai_schemas import TopicTutorialSchema
+
+
+def generate_topic_tutorial(topic_name, topic_description, difficulty, subject_name=""):
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3.5-flash",
+        google_api_key=env('GOOGLE_API_KEY'),
+        temperature=0.4,
+    )
+    structured_llm = llm.with_structured_output(TopicTutorialSchema)
+
+    prompt = f"""Write a comprehensive, in-depth study tutorial for the topic "{topic_name}"{f' (part of {subject_name})' if subject_name else ''}.
+
+    Topic description: {topic_description}
+    Difficulty: {difficulty}
+
+    This should be as thorough as a textbook chapter or a detailed lecture handout — do not write a
+    brief overview. Structure your response as:
+
+    1. Concept: a clear, fairly detailed plain-English explanation of what this topic is, why it
+    matters, and where it's commonly used (3-5 sentences).
+
+    2. Key Points: cover EVERY meaningfully distinct way, variant, method, or sub-case related to this
+    topic — not just the most common one. If the topic name or description implies multiple
+    approaches (e.g. "using X, Y, or Z"), each approach must get its own key point with its own
+    code snippet. Aim for 6-10 key points. Each must include a working code snippet and a bullet
+    list of any relevant parameters (name, type, default, purpose) where applicable.
+
+    3. Examples: provide 4-6 progressively more advanced worked examples, each with a clear
+    description, complete runnable code, and the exact expected output. Do not repeat the same
+    scenario as the Key Points — examples should show these concepts combined or applied to
+    realistic situations.
+
+    If this is a conceptual/non-code topic, keep code snippets empty where not applicable and instead
+    go deeper on explanation, real-world analogies, and conceptual examples.
+    """
+    
+    return structured_llm.invoke(prompt)
+
+def generate_mock_exam(subject_name, topics, goal_mode, num_questions=15):
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3.1-flash-lite",
+        google_api_key=env('GOOGLE_API_KEY'),
+        temperature=0.6,
+    )
+    structured_llm = llm.with_structured_output(QuizSchema)
+
+    goal_hint = {
+        'pass': 'Keep questions basic and focused on core definitions and facts.',
+        'average': 'Mix basic recall questions with a couple of applied/practical questions.',
+        'topper': 'Include analytical, applied, and edge-case questions that test deep understanding, not just recall.',
+    }.get(goal_mode, 'Mix basic and applied questions.')
+
+    topics_list = "\n".join(f"- {t['name']} ({t['difficulty']}): {t['description']}" for t in topics)
+
+    prompt = f"""Generate a {num_questions}-question mock exam covering the ENTIRE subject "{subject_name}".
+
+    The subject has these topics:
+    {topics_list}
+
+    Distribute the {num_questions} questions across these topics so the exam reasonably covers the
+    full syllabus rather than focusing on just one or two topics.
+
+    Student goal level: {goal_mode or 'average'}
+    {goal_hint}
+
+    Each question must have exactly 4 options, one correct answer (by index), a brief explanation,
+    and the exact "topic_name" (copied from the list above) that it covers.
+    """
+
+    return structured_llm.invoke(prompt)

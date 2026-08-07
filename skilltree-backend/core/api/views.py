@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.db.models import Sum
 from pypdf import PdfReader
 from rest_framework.parsers import MultiPartParser
-from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree, generate_quiz, generate_topic_summary
+from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree, generate_quiz, generate_topic_summary, generate_mock_exam, generate_topic_tutorial
 from .tutor_service import get_tutor_response
 from datetime import timedelta
 from django.utils import timezone
@@ -550,11 +550,11 @@ class TopicSummaryView(APIView):
             return Response(json.loads(topic.summary))
 
         try:
-            result = generate_topic_summary(topic.name, topic.description, topic.difficulty)
+            result = generate_topic_tutorial(topic.name, topic.description, topic.difficulty, topic.subject.name)
         except Exception as e:
-            return Response({'error': f'Summary generation failed: {str(e)}'}, status=502)
+            return Response({'error': f'Tutorial generation failed: {str(e)}'}, status=502)
 
-        data = {'summary': result.summary, 'key_concepts': result.key_concepts}
+        data = result.model_dump()
         import json
         topic.summary = json.dumps(data)
         topic.save()
