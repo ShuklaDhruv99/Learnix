@@ -1,0 +1,25 @@
+{
+  "friends": [
+    { "rank": 1, "name": "Diya Shah", "avatar": "DS", "avatarColor": "purple", "xp": 12400, "level": 18, "streak": 21 },
+    { "rank": 2, "name": "Aarav Mehta", "avatar": "AM", "avatarColor": "emerald", "xp": 8420, "level": 14, "streak": 12, "isYou": true },
+    { "rank": 3, "name": "Kabir Solanki", "avatar": "KS", "avatarColor": "blue", "xp": 7960, "level": 13, "streak": 5 },
+    { "rank": 4, "name": "Riya Patel", "avatar": "RP", "avatarColor": "gold", "xp": 6210, "level": 11, "streak": 9 },
+    { "rank": 5, "name": "Yash Trivedi", "avatar": "YT", "avatarColor": "blue", "xp": 5340, "level": 9, "streak": 2 }
+  ],
+  "college": [
+    { "rank": 1, "name": "Meera Iyer", "avatar": "MI", "avatarColor": "gold", "xp": 21800, "level": 26, "streak": 44 },
+    { "rank": 2, "name": "Diya Shah", "avatar": "DS", "avatarColor": "purple", "xp": 12400, "level": 18, "streak": 21 },
+    { "rank": 3, "name": "Om Chauhan", "avatar": "OC", "avatarColor": "emerald", "xp": 11290, "level": 17, "streak": 15 },
+    { "rank": 4, "name": "Ishaan Rao", "avatar": "IR", "avatarColor": "blue", "xp": 9870, "level": 15, "streak": 8 },
+    { "rank": 5, "name": "Aarav Mehta", "avatar": "AM", "avatarColor": "emerald", "xp": 8420, "level": 14, "streak": 12, "isYou": true },
+    { "rank": 6, "name": "Kabir Solanki", "avatar": "KS", "avatarColor": "blue", "xp": 7960, "level": 13, "streak": 5 }
+  ],
+  "global": [
+    { "rank": 1, "name": "Wei Zhang", "avatar": "WZ", "avatarColor": "gold", "xp": 84200, "level": 61, "streak": 210 },
+    { "rank": 2, "name": "Sofia Petrov", "avatar": "SP", "avatarColor": "purple", "xp": 79100, "level": 58, "streak": 188 },
+    { "rank": 3, "name": "Lucas Alves", "avatar": "LA", "avatarColor": "blue", "xp": 71850, "level": 54, "streak": 96 },
+    { "rank": 4, "name": "Meera Iyer", "avatar": "MI", "avatarColor": "gold", "xp": 21800, "level": 26, "streak": 44 },
+    { "rank": 5, "name": "Ken Watanabe", "avatar": "KW", "avatarColor": "emerald", "xp": 19400, "level": 24, "streak": 30 },
+    { "rank": 342, "name": "Aarav Mehta", "avatar": "AM", "avatarColor": "emerald", "xp": 8420, "level": 14, "streak": 12, "isYou": true }
+  ]
+}

@@ -1,6 +1,6 @@
 import { useState,useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Settings as SettingsIcon, Globe, User } from 'lucide-react'
+import { Settings as SettingsIcon, Bell, Globe, Moon, User, Shield } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { useApp } from '../contexts/AppContext'
@@ -30,6 +30,10 @@ function ToggleRow({ icon: Icon, title, desc, checked, onChange }) {
 
 export default function SettingsPage() {
   const { currentUser, getSettings, saveSettings, refreshMyProfile } = useApp()
+  const [notifications, setNotifications] = useState(true)
+  const [dailyReminders, setDailyReminders] = useState(true)
+  const [darkMode, setDarkMode] = useState(true)
+  const [language, setLanguage] = useState('English')
 
   const [bio, setBio] = useState('')
   const [displayName, setDisplayName] = useState('')
@@ -112,6 +116,45 @@ export default function SettingsPage() {
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
             {saveMessage && <span className="text-xs text-emerald-bright">{saveMessage}</span>}
+          </div>
+        </Card>
+      </motion.div>
+
+      <motion.div variants={fadeUp}>
+        <Card className="p-5">
+          <h3 className="font-display font-semibold mb-1 flex items-center gap-2">
+            <Bell className="w-4.5 h-4.5 text-purple-bright" /> Notifications
+          </h3>
+          <ToggleRow icon={Bell} title="Push Notifications" desc="Get notified about achievements and streaks." checked={notifications} onChange={setNotifications} />
+          <ToggleRow icon={Shield} title="Daily Reminders" desc="A nudge if you haven't studied yet today." checked={dailyReminders} onChange={setDailyReminders} />
+        </Card>
+      </motion.div>
+
+      <motion.div variants={fadeUp}>
+        <Card className="p-5">
+          <h3 className="font-display font-semibold mb-1 flex items-center gap-2">
+            <Moon className="w-4.5 h-4.5 text-blue-bright" /> Appearance
+          </h3>
+          <ToggleRow icon={Moon} title="Dark Mode" desc="Learnix is designed dark-first." checked={darkMode} onChange={setDarkMode} />
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                <Globe className="w-4.5 h-4.5 text-white/60" />
+              </div>
+              <div>
+                <p className="text-sm font-medium">Language</p>
+                <p className="text-xs text-white/40">Interface display language</p>
+              </div>
+            </div>
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-1.5 text-sm focus:outline-none"
+            >
+              {['English', 'Gujarati', 'Hindi'].map((l) => (
+                <option key={l} value={l} className="bg-base-900">{l}</option>
+              ))}
+            </select>
           </div>
         </Card>
       </motion.div>

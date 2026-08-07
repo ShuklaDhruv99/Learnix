@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Menu, Bell, Flame, Zap } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useApp } from '../../contexts/AppContext'
+import NotificationsPanel from '../common/NotificationsPanel'
 
 export default function Navbar() {
   const { dashboard, currentUser, setMobileNavOpen } = useApp()
+  const [notifOpen, setNotifOpen] = useState(false)
   const profile = dashboard?.profile
   const avatarInitial = currentUser?.username?.[0]?.toUpperCase() || '?'
 
@@ -25,6 +27,17 @@ export default function Navbar() {
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass text-sm">
           <Zap className="w-4 h-4 text-emerald-bright" />
           <span className="font-mono font-medium">Lv {profile?.level ?? 1}</span>
+        </div>
+        <div className="relative">
+          <button
+            onClick={() => setNotifOpen((o) => !o)}
+            className="relative p-2.5 rounded-xl glass hover:bg-white/10 transition-colors"
+            aria-label="Notifications"
+          >
+            <Bell className="w-4.5 h-4.5" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-bright shadow-glow-emerald" />
+          </button>
+          <NotificationsPanel open={notifOpen} onClose={() => setNotifOpen(false)} />
         </div>
         <Link to="/app/profile" className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-bright to-blue flex items-center justify-center font-display font-bold text-xs text-base-950 shrink-0">
           {avatarInitial}

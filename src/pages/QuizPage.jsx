@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ListChecks, CheckCircle2, XCircle, ArrowLeft, Trophy, Loader2, Timer, Sparkles } from 'lucide-react'
+import { ListChecks, CheckCircle2, XCircle, ArrowLeft, Trophy, Loader2, Sparkles } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { useApp } from '../contexts/AppContext'
@@ -19,7 +19,7 @@ function formatTime(totalSeconds) {
 export default function QuizPage() {
   const { topicId } = useParams()
   const navigate = useNavigate()
-  const { generateQuiz, submitQuizAttempt, refreshAnalytics, refreshAchievements } = useApp()
+  const { generateQuiz, submitQuizAttempt } = useApp()
 
   const [status, setStatus] = useState('setup') // setup | loading | active | submitted | error
   const [numQuestions, setNumQuestions] = useState(5)
@@ -96,7 +96,6 @@ export default function QuizPage() {
     )
     try {
       await submitQuizAttempt(topicId, finalScore, questions.length)
-      await Promise.all([refreshAnalytics(), refreshAchievements()])
     } catch (err) {
       console.error('Failed to save quiz attempt', err)
     }

@@ -67,20 +67,7 @@ export default function TopicPage() {
     setResourcesStatus('loading')
     try {
       const data = await getTopicResources(numericTopicId)
-      if (data.length === 0) {
-        // No videos saved yet — fetch real ones from YouTube right away
-        const result = await fetchTopicResources(topic.id)
-        const updated = await getTopicResources(topic.id)
-        setResources(updated)
-        await refreshResources()
-        setFetchMessage(
-          result.resources_created?.length > 0
-            ? `Found ${result.resources_created.length} new video(s)!`
-            : result.message || 'No new videos found — try again later.'
-        )
-      } else {
-        setResources(data)
-      }
+      setResources(data)
       setResourcesStatus('loaded')
     } catch (err) {
       console.error('Failed to load resources', err)

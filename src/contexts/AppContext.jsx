@@ -243,7 +243,6 @@ export function AppProvider({ children }) {
     formData.append('file', file)
     const result = await apiRequest('/syllabus/generate/', { method: 'POST', body: formData, isFormData: true })
     await refreshSubjects()
-    await refreshAchievements()
     return result
   }
 
