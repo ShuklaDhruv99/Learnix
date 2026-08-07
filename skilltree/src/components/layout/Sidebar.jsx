@@ -1,4 +1,4 @@
-import { NavLink, Link } from 'react-router-dom'
+import { NavLink, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -31,7 +31,8 @@ const navItems = [
 ]
 
 function SidebarContent({ onNavigate }) {
-  const { logout, currentUser } = useApp()
+  const { logout, currentUser, isDemoMode } = useApp()
+  const navigate = useNavigate()
 
   return (
     <div className="flex flex-col h-full">
@@ -81,13 +82,15 @@ function SidebarContent({ onNavigate }) {
         </div>
         <button
           onClick={() => {
+            const destination = isDemoMode ? '/' : '/login'
+            navigate(destination)
             logout()
             onNavigate?.()
           }}
           className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-white/50 hover:text-red-400 hover:bg-red-500/5 transition-colors"
         >
           <LogOut className="w-4.5 h-4.5 shrink-0" />
-          <span>Log out{currentUser ? ` (${currentUser.username})` : ''}</span>
+          <span>{isDemoMode ? 'Exit Demo' : `Log out${currentUser ? ` (${currentUser.username})` : ''}`}</span>
         </button>
       </div>
     </div>

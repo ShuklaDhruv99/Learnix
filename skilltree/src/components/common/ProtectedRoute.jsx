@@ -3,6 +3,6 @@ import { useApp } from '../../contexts/AppContext'
 
 export default function ProtectedRoute({ children }) {
   const { isAuthenticated, isDemoMode } = useApp()
-  if (!isAuthenticated && !isDemoMode) return <Navigate to="/login" replace />
+  if (!isAuthenticated && !isDemoMode) return <Navigate to="/" replace />
   return children
 }

@@ -220,7 +220,9 @@ class LeaderboardView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        profiles = Profile.objects.select_related('user').order_by('-total_xp')[:50]
+        profiles = Profile.objects.filter(
+            user__is_staff=False, user__is_superuser=False
+        ).select_related('user').order_by('-total_xp')[:50]
         data = [
             {
                 'username': p.user.username,
