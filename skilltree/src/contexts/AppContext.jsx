@@ -294,6 +294,20 @@ export function AppProvider({ children }) {
     return apiRequest(`/topics/${topicId}/generate-summary/`, { method: 'POST' })
   }
 
+  async function generateCodePractice(topicId, numQuestions = 5) {
+    return apiRequest(`/topics/${topicId}/generate-code-practice/`, {
+      method: 'POST',
+      body: { num_questions: numQuestions },
+    })
+  }
+
+  async function reviewCodeAttempt(problemStatement, solutionCode, userCode) {
+    return apiRequest('/review-code-attempt/', {
+      method: 'POST',
+      body: { problem_statement: problemStatement, solution_code: solutionCode, user_code: userCode },
+    })
+  }
+
   function logout() {
     clearTokens()
     setIsAuthenticated(false)
@@ -356,7 +370,9 @@ export function AppProvider({ children }) {
       clearTopicChat,
       getTopicSummary,
       refreshMyProfile,
-      myProfile
+      myProfile,
+      generateCodePractice,
+      reviewCodeAttempt
     }),
     [
       isAuthenticated,

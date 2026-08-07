@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.db.models import Sum
 from pypdf import PdfReader
 from rest_framework.parsers import MultiPartParser
-from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree, generate_quiz, generate_topic_summary, generate_mock_exam, generate_topic_tutorial
+from .ai_services import generate_syllabus_tree, validate_topic_tree, save_generated_tree, generate_quiz, generate_topic_summary, generate_mock_exam, generate_topic_tutorial, generate_code_practice, review_code_attempt
 from .tutor_service import get_tutor_response
 from datetime import timedelta
 from django.utils import timezone
@@ -581,3 +581,45 @@ class MyProfileView(APIView):
     def get(self, request):
         serializer = MyProfileSerializer(request.user.profile)
         return Response(serializer.data)
+
+class GenerateCodePracticeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, topic_id):
+        topic = get_object_or_404(Topic, id=topic_id)
+
+        num_questions = request.data.get('num_questions', 5)
+        try:
+            num_questions = int(num_questions)
+        except (TypeError, ValueError):
+            num_questions = 5
+        num_questions = max(1, min(num_questions, 10))
+
+        try:
+            result = generate_code_practice(topic.name, topic.description, topic.difficulty, num_questions)
+        except Exception as e:
+            return Response({'error': f'Code practice generation failed: {str(e)}'}, status=502)
+
+        return Response({
+            'topic_id': topic.id,
+            'questions': [q.model_dump() for q in result.questions],
+        })
+
+
+class ReviewCodeAttemptView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        problem_statement = request.data.get('problem_statement', '')
+        solution_code = request.data.get('solution_code', '')
+        user_code = request.data.get('user_code', '')
+
+        if not user_code.strip():
+            return Response({'error': 'Please write an attempt before requesting feedback.'}, status=400)
+
+        try:
+            feedback = review_code_attempt(problem_statement, solution_code, user_code)
+        except Exception as e:
+            return Response({'error': f'Feedback generation failed: {str(e)}'}, status=502)
+
+        return Response({'feedback': feedback})

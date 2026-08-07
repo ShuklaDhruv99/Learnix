@@ -4,7 +4,8 @@ from .views import (
     SubjectListView, TopicListView, RegisterView, OnboardingView, EnrollView, CompleteTopicView, ResourceListView,
     BookmarkListCreateView, BookmarkDeleteView, AchievementListView, StudySessionCreateView, DashboardView, LeaderboardView,
     SyllabusExtractView, SyllabusGenerateView, TopicChatView, AllResourcesListView, AnalyticsView, FetchTopicResourcesView,
-    GenerateQuizView, QuizAttemptCreateView, QuizAttemptListView, ClearTopicChatView, TopicSummaryView, MyProfileView
+    GenerateQuizView, QuizAttemptCreateView, QuizAttemptListView, ClearTopicChatView, TopicSummaryView, MyProfileView,
+    GenerateCodePracticeView, ReviewCodeAttemptView
 )
 
 urlpatterns = [
@@ -35,4 +36,6 @@ urlpatterns = [
     path('topics/<int:topic_id>/chat/clear/', ClearTopicChatView.as_view(), name='topic-chat-clear'),
     path('topics/<int:topic_id>/generate-summary/', TopicSummaryView.as_view(), name='topic-summary'),
     path('my-profile/', MyProfileView.as_view(), name='my-profile'),
+    path('topics/<int:topic_id>/generate-code-practice/', GenerateCodePracticeView.as_view(), name='generate-code-practice'),
+    path('review-code-attempt/', ReviewCodeAttemptView.as_view(), name='review-code-attempt'),
 ]

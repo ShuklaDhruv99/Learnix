@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Clock, Zap, BarChart3, CheckCircle2, Link2, PlayCircle, RefreshCw, ArrowLeft, Timer, ListChecks } from 'lucide-react'
+import { Clock, Zap, BarChart3, CheckCircle2, Link2, PlayCircle, RefreshCw, ArrowLeft, Timer, ListChecks, Code2 } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
@@ -313,6 +313,23 @@ export default function TopicPage() {
           </div>
           <Link to={`/app/topics/${numericTopicId}/quiz`}>
             <Button>Start Quiz</Button>
+          </Link>
+        </Card>
+      </motion.div>
+
+      <motion.div variants={fadeUp}>
+        <Card className="p-6 sm:p-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-blue/10 border border-blue/30 flex items-center justify-center shrink-0">
+              <Code2 className="w-5 h-5 text-blue-bright" />
+            </div>
+            <div>
+              <h3 className="font-display font-semibold">Applied Practice</h3>
+              <p className="text-xs text-white/40">Solve real problems — code or written — with AI feedback</p>
+            </div>
+          </div>
+          <Link to={`/app/topics/${numericTopicId}/code-practice`}>
+            <Button>Practice</Button>
           </Link>
         </Card>
       </motion.div>

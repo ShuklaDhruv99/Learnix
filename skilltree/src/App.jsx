@@ -21,6 +21,7 @@ import Settings from './pages/Settings'
 import SyllabusUpload from './pages/SyllabusUpload'
 import TopicPage from './pages/TopicPage'
 import QuizPage from './pages/QuizPage'
+import CodePracticePage from './pages/CodePracticePage'
 
 export default function App() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
             <Route path="/app/syllabus-upload" element={<SyllabusUpload />} />
             <Route path="/app/topics/:topicId" element={<TopicPage />} />
             <Route path="/app/topics/:topicId/quiz" element={<QuizPage />} />
+            <Route path="/app/topics/:topicId/code-practice" element={<CodePracticePage />} />
           </Route>
         </Routes>
       </BrowserRouter>

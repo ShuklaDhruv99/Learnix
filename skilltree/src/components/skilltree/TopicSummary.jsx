@@ -4,8 +4,18 @@ import Card from '../ui/Card'
 import Button from '../ui/Button'
 import { useApp } from '../../contexts/AppContext'
 
-function CodeBlock({ code, label }) {
+function CodeBlock({ code, output, isCode, label }) {
   if (!code) return null
+
+  if (!isCode) {
+    return (
+      <div className="rounded-lg bg-white/[0.03] border border-white/[0.06] p-3 mt-2">
+        {label && <p className="text-[10px] text-white/40 uppercase mb-1">{label}</p>}
+        <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{code}</p>
+      </div>
+    )
+  }
+
   return (
     <div className="rounded-lg bg-black/40 border border-white/[0.06] overflow-hidden mt-2">
       {label && (
@@ -87,7 +97,7 @@ export default function TopicSummary({ topicId }) {
                   <div key={i} className="glass rounded-xl p-4">
                     <p className="text-sm font-semibold text-white mb-1">{kp.title}</p>
                     <p className="text-xs text-white/60 leading-relaxed">{kp.explanation}</p>
-                    <CodeBlock code={kp.code} />
+                    <CodeBlock code={kp.code} isCode={kp.is_code} />
                     {kp.details?.length > 0 && (
                       <ul className="mt-3 space-y-1.5">
                         {kp.details.map((d, j) => (
@@ -114,8 +124,8 @@ export default function TopicSummary({ topicId }) {
                   <div key={i} className="glass rounded-xl p-4">
                     <p className="text-sm font-semibold text-white mb-1">{ex.title}</p>
                     <p className="text-xs text-white/60 leading-relaxed mb-1">{ex.description}</p>
-                    <CodeBlock code={ex.code} label="Code" />
-                    {ex.output && <CodeBlock code={ex.output} label="Output" />}
+                    <CodeBlock code={ex.code} isCode={ex.is_code} label={ex.is_code ? 'Code' : 'Answer'} />
+                    {ex.output && <CodeBlock code={ex.output} isCode={ex.is_code} label={ex.is_code ? 'Output' : 'Result'} />}
                   </div>
                 ))}
               </div>

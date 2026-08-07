@@ -2,7 +2,7 @@ import environ
 import os
 from django.conf import settings
 from langchain_google_genai import ChatGoogleGenerativeAI
-from .ai_schemas import SubjectTreeSchema, QuizSchema, TopicSummarySchema
+from .ai_schemas import SubjectTreeSchema, QuizSchema, TopicSummarySchema, CodePracticeSetSchema
 from django.db import transaction
 from .models import Subject, Topic
 
@@ -171,36 +171,46 @@ from .ai_schemas import TopicTutorialSchema
 
 def generate_topic_tutorial(topic_name, topic_description, difficulty, subject_name=""):
     llm = ChatGoogleGenerativeAI(
-        model="gemini-3.5-flash",
+        model="gemini-3.1-flash-lite",
         google_api_key=env('GOOGLE_API_KEY'),
         temperature=0.4,
     )
     structured_llm = llm.with_structured_output(TopicTutorialSchema)
 
-    prompt = f"""Write a comprehensive, in-depth study tutorial for the topic "{topic_name}"{f' (part of {subject_name})' if subject_name else ''}.
+    prompt = f"""
+    For every key point and example, set is_code=True only if the code field actually contains real code;
+    set is_code=False if it contains prose/explanation instead.Write a comprehensive, in-depth study tutorial
+    for the topic "{topic_name}"{f' (part of {subject_name})' if subject_name else ''}.
 
     Topic description: {topic_description}
     Difficulty: {difficulty}
+
+    First, decide whether this is a coding/technical topic or a non-coding subject (e.g. theory,
+    history, business, science concepts, etc.).
 
     This should be as thorough as a textbook chapter or a detailed lecture handout — do not write a
     brief overview. Structure your response as:
 
     1. Concept: a clear, fairly detailed plain-English explanation of what this topic is, why it
-    matters, and where it's commonly used (3-5 sentences).
+    matters, and where it's commonly used or applied (3-5 sentences).
 
-    2. Key Points: cover EVERY meaningfully distinct way, variant, method, or sub-case related to this
-    topic — not just the most common one. If the topic name or description implies multiple
-    approaches (e.g. "using X, Y, or Z"), each approach must get its own key point with its own
-    code snippet. Aim for 6-10 key points. Each must include a working code snippet and a bullet
-    list of any relevant parameters (name, type, default, purpose) where applicable.
+    2. Key Points: cover EVERY meaningfully distinct way, variant, method, sub-case, or important
+    aspect related to this topic — not just the most obvious one. Aim for 6-10 key points.
+    - If this IS a coding/technical topic: each key point should include a working code snippet
+    and a bullet list of relevant parameters (name, type, default, purpose) where applicable.
+    - If this is NOT a coding topic: each key point should instead include a concrete illustrative
+    example, real-world scenario, or short case reference where applicable, and the "details"
+    list can hold key facts, dates, terms, or distinguishing characteristics instead of parameters.
+    Leave code empty in this case.
 
-    3. Examples: provide 4-6 progressively more advanced worked examples, each with a clear
-    description, complete runnable code, and the exact expected output. Do not repeat the same
-    scenario as the Key Points — examples should show these concepts combined or applied to
-    realistic situations.
+    3. Examples: provide 4-6 progressively more advanced worked examples.
+    - If coding: each example needs a description, complete runnable code, and exact expected output.
+    - If non-coding: each example should be a worked scenario, case study, or applied
+    illustration — description, the "code" field can hold a structured worked-through answer as
+    prose, and "output" can hold the concluding result or takeaway of that example.
 
-    If this is a conceptual/non-code topic, keep code snippets empty where not applicable and instead
-    go deeper on explanation, real-world analogies, and conceptual examples.
+    Be genuinely thorough and specific to the actual subject matter — do not force a coding framing
+    onto a topic that isn't code-based.
     """
 
     return structured_llm.invoke(prompt)
@@ -237,3 +247,76 @@ def generate_mock_exam(subject_name, topics, goal_mode, num_questions=15):
     """
 
     return structured_llm.invoke(prompt)
+
+from .ai_schemas import CodePracticeSetSchema
+
+
+def generate_code_practice(topic_name, topic_description, difficulty, num_questions=5):
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3.1-flash-lite",
+        google_api_key=env('GOOGLE_API_KEY'),
+        temperature=0.5,
+    )
+    structured_llm = llm.with_structured_output(CodePracticeSetSchema)
+
+    prompt = f"""Set is_code=True if this is a genuine coding problem, or False if it's
+    a written/applied problem — this must match whether solution_code actually contains code or prose.
+    
+    Generate {num_questions} applied practice problems for the topic "{topic_name}".
+
+    Topic description: {topic_description}
+    Difficulty: {difficulty}
+
+    First, decide whether this topic is fundamentally code/programming-based, or a non-coding
+    subject (e.g. theory, history, business, science concepts, etc.).
+
+    If it IS a coding topic:
+    - Write real coding problems (similar to an exam or coding assessment)
+    - Provide optional minimal starter code (function signature etc.)
+    - Provide a complete, correct code solution
+    - Explain the code solution step by step
+
+    If it is NOT a coding topic:
+    - Write realistic applied/practical problems appropriate to the subject — e.g. a short scenario,
+    case study, or "explain how you would..." style question that requires real application of the
+    topic, not just recall
+    - Leave starter_code as an empty string
+    - Provide a well-written, complete model answer in the solution_code field (as prose, not code)
+    - Explain the reasoning behind that model answer step by step
+
+    Vary the problems so they cover different aspects of this topic, not the same scenario repeated.
+    """
+
+    return structured_llm.invoke(prompt)
+
+
+def review_code_attempt(problem_statement, solution_code, user_code):
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-3.1-flash-lite",
+        google_api_key=env('GOOGLE_API_KEY'),
+        temperature=0.3,
+    )
+
+    prompt = f"""A student attempted this practice problem:
+
+    Problem: {problem_statement}
+
+    Model answer:
+    {solution_code}
+
+    Student's attempt:
+    {user_code}
+
+    Give brief, encouraging feedback (3-5 sentences) on the student's attempt. If this is a coding
+    problem, assess correctness of logic/syntax. If it's a written/applied answer, assess accuracy,
+    completeness, and reasoning. Point out what's missing or wrong (if anything), and give one
+    concrete suggestion for improvement. Assess their actual answer directly, don't just say
+    "compare to the model answer."
+    """
+
+    response = llm.invoke(prompt)
+    content = response.content
+    if isinstance(content, list):
+        text_parts = [block.get('text', '') for block in content if isinstance(block, dict) and block.get('type') == 'text']
+        return ''.join(text_parts)
+    return content
