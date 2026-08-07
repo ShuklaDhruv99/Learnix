@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Sparkles,
   ArrowRight,
@@ -47,7 +47,6 @@ const stats = [
   { value: 250, suffix: '+', label: 'Subjects' },
   { value: 100, suffix: '+', label: 'Courses' },
 ]
-
 const testimonials = [
   { name: 'Priya Nair', role: 'GTU, Computer Engineering', quote: 'I stopped dreading DBMS once it became a tree I could actually see myself finishing.', rating: 5 },
   { name: 'Rohan Desai', role: 'Class 12, GSEB Science', quote: 'The daily goal streak is the only reason I opened my notes every single day before boards.', rating: 5 },
@@ -56,8 +55,14 @@ const testimonials = [
 
 export default function Landing() {
   const [mobileMenu, setMobileMenu] = useState(false)
-  const { isAuthenticated, currentUser } = useApp()
+  const { isAuthenticated, currentUser, enterDemoMode } = useApp()
+  const navigate = useNavigate()
   const getStartedLink = isAuthenticated ? '/app' : '/register'
+
+  function handleExploreDemo() {
+    enterDemoMode()
+    navigate('/app')
+  }
 
   return (
     <div className="relative">
@@ -82,7 +87,7 @@ export default function Landing() {
               </span>
             ) : (
               <>
-                <Link to="/app" className="text-sm text-white/60 hover:text-white transition-colors px-3">Explore Demo</Link>
+                <button onClick={handleExploreDemo} className="text-sm text-white/60 hover:text-white transition-colors px-3">Explore Demo</button>
                 <Link to={getStartedLink}>
                   <Button size="sm">Get Started</Button>
                 </Link>
@@ -93,20 +98,6 @@ export default function Landing() {
             <Menu className="w-5 h-5" />
           </button>
         </div>
-        {/* <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
-              <span className="text-sm text-white/70 px-3">
-                Signed in as <span className="text-emerald-bright font-medium">{currentUser?.username}</span>
-              </span>
-            ) : (
-              <>
-                <Link to="/app" className="text-sm text-white/60 hover:text-white transition-colors px-3">Explore Demo</Link>
-                <Link to={getStartedLink}>
-                  <Button size="sm">Get Started</Button>
-                </Link>
-              </>
-            )}
-          </div> */}
       </header>
 
       {/* Hero */}
@@ -129,9 +120,7 @@ export default function Landing() {
                 <Button size="lg" iconRight={ArrowRight}>{isAuthenticated ? 'Go to Dashboard' : 'Get Started'}</Button>
               </Link>
               {!isAuthenticated && (
-                <Link to="/app">
-                  <Button size="lg" variant="secondary" icon={PlayCircle}>Explore Demo</Button>
-                </Link>
+                <Button size="lg" variant="secondary" icon={PlayCircle} onClick={handleExploreDemo}>Explore Demo</Button>
               )}
             </motion.div>
             <motion.div variants={fadeUp} className="mt-10 flex items-center gap-6 text-xs text-white/30 font-mono">
