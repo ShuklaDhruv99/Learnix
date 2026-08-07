@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
-import { BookOpenText, Sparkles, Code2, Terminal } from 'lucide-react'
+import { useState } from 'react'
+import { BookOpenText, Sparkles, Code2, Terminal, Loader2 } from 'lucide-react'
 import Card from '../ui/Card'
+import Button from '../ui/Button'
 import { useApp } from '../../contexts/AppContext'
 
 function CodeBlock({ code, label }) {
@@ -22,32 +23,53 @@ function CodeBlock({ code, label }) {
 
 export default function TopicSummary({ topicId }) {
   const { getTopicSummary } = useApp()
+  const [status, setStatus] = useState('idle') // idle | loading | loaded | error
   const [tutorial, setTutorial] = useState(null)
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    setLoading(true)
+  async function handleLoad() {
+    setStatus('loading')
     setError(null)
-    getTopicSummary(topicId)
-      .then(setTutorial)
-      .catch((err) => setError(err?.data?.error || 'Failed to load tutorial.'))
-      .finally(() => setLoading(false))
-  }, [topicId])
+    try {
+      const data = await getTopicSummary(topicId)
+      setTutorial(data)
+      setStatus('loaded')
+    } catch (err) {
+      setError(err?.data?.error || 'Failed to load tutorial.')
+      setStatus('error')
+    }
+  }
 
   return (
     <Card className="p-6 sm:p-8">
-      <h3 className="font-display font-semibold flex items-center gap-2 mb-4">
-        <BookOpenText className="w-4.5 h-4.5 text-emerald-bright" /> Tutorial
-      </h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-display font-semibold flex items-center gap-2">
+          <BookOpenText className="w-4.5 h-4.5 text-emerald-bright" /> Tutorial
+        </h3>
+        {status === 'idle' && (
+          <Button size="sm" onClick={handleLoad} icon={Sparkles}>View Tutorial</Button>
+        )}
+        {status === 'error' && (
+          <Button size="sm" variant="secondary" onClick={handleLoad}>Try Again</Button>
+        )}
+      </div>
 
-      {loading ? (
-        <p className="text-xs text-white/30">Generating your tutorial...</p>
-      ) : error ? (
-        <p className="text-xs text-red-400">{error}</p>
-      ) : tutorial ? (
+      {status === 'idle' && (
+        <p className="text-sm text-white/40">Get a full breakdown of this topic — concept, key points, and worked code examples.</p>
+      )}
+
+      {status === 'loading' && (
+        <div className="flex items-center gap-2 text-white/50 text-sm py-8 justify-center">
+          <Loader2 className="w-4 h-4 animate-spin" /> Generating your tutorial...
+        </div>
+      )}
+
+      {status === 'error' && (
+        <p className="text-sm text-red-400">{error}</p>
+      )}
+
+      {status === 'loaded' && tutorial && (
         <div className="space-y-8">
-          {/* Concept */}
           {tutorial.concept && (
             <div>
               <h4 className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-2">Concept</h4>
@@ -55,7 +77,6 @@ export default function TopicSummary({ topicId }) {
             </div>
           )}
 
-          {/* Key Points */}
           {tutorial.key_points?.length > 0 && (
             <div>
               <h4 className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-3 flex items-center gap-1.5">
@@ -83,7 +104,6 @@ export default function TopicSummary({ topicId }) {
             </div>
           )}
 
-          {/* Examples */}
           {tutorial.examples?.length > 0 && (
             <div>
               <h4 className="text-xs font-semibold text-white/50 uppercase tracking-wide mb-3 flex items-center gap-1.5">
@@ -102,7 +122,7 @@ export default function TopicSummary({ topicId }) {
             </div>
           )}
         </div>
-      ) : null}
+      )}
     </Card>
   )
 }

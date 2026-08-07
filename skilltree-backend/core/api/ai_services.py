@@ -134,10 +134,17 @@ def generate_quiz(topic_name, topic_description, difficulty, goal_mode, num_ques
 
     {goal_hint}
 
-    Each question must have exactly 4 options, one correct answer (by index), and a brief explanation.
-    Base question difficulty on both the topic's difficulty level and the student goal guidance above.
+    Each question must have exactly 4 options and one correct answer (by index).
+
+    For each question, also provide a structured explanation with three parts:
+    1. solution_steps: 3-5 general steps describing HOW to approach this type of question (no specific
+    numbers/values yet, just the method).
+    2. worked_solution: the SAME steps, but now worked through with the actual specific values, code,
+    or calculations from THIS question, showing concretely how to arrive at the answer.
+    3. why_correct: a short 1-2 sentence direct statement of why the correct option is the right one.
+
     Vary the questions so no two test the exact same fact.
-    """ 
+    """
 
     return structured_llm.invoke(prompt)
 
@@ -195,7 +202,7 @@ def generate_topic_tutorial(topic_name, topic_description, difficulty, subject_n
     If this is a conceptual/non-code topic, keep code snippets empty where not applicable and instead
     go deeper on explanation, real-world analogies, and conceptual examples.
     """
-    
+
     return structured_llm.invoke(prompt)
 
 def generate_mock_exam(subject_name, topics, goal_mode, num_questions=15):

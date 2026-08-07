@@ -17,12 +17,14 @@ class TopicSchema(BaseModel):
 class SubjectTreeSchema(BaseModel):
     subject_name: str = Field(description="Name of the overall subject/course")
     topics: List[TopicSchema] = Field(description="Ordered list of topics covering the full syllabus")
-
+    
 class QuizQuestionSchema(BaseModel):
     question: str = Field(description="The question text")
     options: List[str] = Field(description="Exactly 4 answer options")
     correct_index: int = Field(description="Index (0-3) of the correct option in the options list")
-    explanation: str = Field(description="Brief explanation of why the correct answer is right")
+    solution_steps: List[str] = Field(description="3-5 general steps describing the approach to solve this question, without specific numbers yet")
+    worked_solution: List[str] = Field(description="The same steps worked through with actual values/code/calculations from this specific question, showing how you arrive at the answer")
+    why_correct: str = Field(description="1-2 sentences directly explaining why the correct option is right")
     topic_name: str = Field(default="", description="Name of the specific topic this question covers, for multi-topic exams; empty otherwise")
 
 class QuizSchema(BaseModel):

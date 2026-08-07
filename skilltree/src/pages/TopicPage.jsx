@@ -1,17 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Clock, Zap, BarChart3, CheckCircle2, Link2, PlayCircle, RefreshCw, ArrowLeft, Timer } from 'lucide-react'
+import { Clock, Zap, BarChart3, CheckCircle2, Link2, PlayCircle, RefreshCw, ArrowLeft, Timer, ListChecks } from 'lucide-react'
 import Card from '../components/ui/Card'
 import Badge from '../components/ui/Badge'
 import Button from '../components/ui/Button'
+import TopicSummary from '../components/skilltree/TopicSummary'
+import TutorChat from '../components/skilltree/TutorChat'
 import { getIcon } from '../utils/iconMap'
 import { difficultyColor } from '../utils/xp'
 import { useApp } from '../contexts/AppContext'
 import { stagger, fadeUp } from '../animations/variants'
-import QuizSection from '../components/skilltree/QuizSection'
-import TutorChat from '../components/skilltree/TutorChat'
-import TopicSummary from '../components/skilltree/TopicSummary'
 
 const TIME_OPTIONS = [15, 30, 60]
 
@@ -29,7 +28,7 @@ export default function TopicPage() {
   const [justCompleted, setJustCompleted] = useState(false)
 
   const [resources, setResources] = useState([])
-  const [resourcesLoading, setResourcesLoading] = useState(false)
+  const [resourcesStatus, setResourcesStatus] = useState('idle') // idle | loading | loaded
   const [fetchingVideos, setFetchingVideos] = useState(false)
   const [fetchMessage, setFetchMessage] = useState(null)
 
@@ -60,15 +59,21 @@ export default function TopicPage() {
     setCompleting(false)
     setFetchMessage(null)
     setLogMessage(null)
+    setResourcesStatus('idle')
+    setResources([])
   }, [topicId])
 
-  useEffect(() => {
-    setResourcesLoading(true)
-    getTopicResources(numericTopicId)
-      .then(setResources)
-      .catch((err) => console.error('Failed to load resources', err))
-      .finally(() => setResourcesLoading(false))
-  }, [numericTopicId])
+  async function handleLoadResources() {
+    setResourcesStatus('loading')
+    try {
+      const data = await getTopicResources(numericTopicId)
+      setResources(data)
+      setResourcesStatus('loaded')
+    } catch (err) {
+      console.error('Failed to load resources', err)
+      setResourcesStatus('idle')
+    }
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center h-96 text-white/40 text-sm">Loading topic...</div>
@@ -226,57 +231,92 @@ export default function TopicPage() {
           )}
         </Card>
       </motion.div>
+
       <motion.div variants={fadeUp}>
         <TopicSummary topicId={numericTopicId} />
       </motion.div>
+
       <motion.div variants={fadeUp}>
         <Card className="p-6 sm:p-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-3">
             <h3 className="font-display font-semibold flex items-center gap-2">
               <PlayCircle className="w-4.5 h-4.5 text-emerald-bright" /> Video Resources
             </h3>
-            <button
-              onClick={handleFetchVideos}
-              disabled={fetchingVideos}
-              className="text-xs text-emerald-bright hover:text-emerald-bright/80 inline-flex items-center gap-1.5 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-3 h-3 ${fetchingVideos ? 'animate-spin' : ''}`} />
-              {fetchingVideos ? 'Finding...' : resources.length > 0 ? 'Find more' : 'Find videos'}
-            </button>
+            {resourcesStatus === 'idle' && (
+              <Button size="sm" onClick={handleLoadResources} icon={PlayCircle}>Find Videos</Button>
+            )}
           </div>
 
-          {fetchMessage && <p className="text-xs text-emerald-bright mb-3">{fetchMessage}</p>}
+          {resourcesStatus === 'idle' && (
+            <p className="text-sm text-white/40">Fetch curated YouTube videos for this topic.</p>
+          )}
 
-          {resourcesLoading ? (
+          {resourcesStatus === 'loading' && (
             <p className="text-xs text-white/30">Loading resources...</p>
-          ) : resources.length === 0 ? (
-            <p className="text-xs text-white/30">No videos yet — click "Find videos" to fetch some from YouTube.</p>
-          ) : (
-            <div className="grid sm:grid-cols-2 gap-3">
-              {resources.map((r) => (
-                <a
-                  key={r.id}
-                  href={r.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-start gap-3 p-3 rounded-xl glass hover:bg-white/10 transition-colors group"
+          )}
+
+          {resourcesStatus === 'loaded' && (
+            <>
+              <div className="flex items-center justify-end mb-3">
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={handleFetchVideos}
+                  disabled={fetchingVideos}
+                  icon={RefreshCw}
+                  className={fetchingVideos ? '[&_svg]:animate-spin' : ''}
                 >
-                  <div className="w-9 h-9 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <PlayCircle className="w-4 h-4 text-red-400" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium leading-snug group-hover:text-emerald-bright transition-colors">{r.title}</p>
-                    <p className="text-xs text-white/40 mt-0.5">{r.creator}</p>
-                  </div>
-                </a>
-              ))}
-            </div>
+                  {fetchingVideos ? 'Finding...' : resources.length > 0 ? 'Find more' : 'Find videos'}
+                </Button>
+              </div>
+
+              {fetchMessage && <p className="text-xs text-emerald-bright mb-3">{fetchMessage}</p>}
+
+              {resources.length === 0 ? (
+                <p className="text-xs text-white/30">No videos yet — click "Find videos" to fetch some from YouTube.</p>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-3">
+                  {resources.map((r) => (
+                    <a
+                      key={r.id}
+                      href={r.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-start gap-3 p-3 rounded-xl glass hover:bg-white/10 transition-colors group"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <PlayCircle className="w-4 h-4 text-red-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium leading-snug group-hover:text-emerald-bright transition-colors">{r.title}</p>
+                        <p className="text-xs text-white/40 mt-0.5">{r.creator}</p>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </Card>
       </motion.div>
+
       <motion.div variants={fadeUp}>
-        <QuizSection topicId={numericTopicId} />
+        <Card className="p-6 sm:p-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-purple/10 border border-purple/30 flex items-center justify-center shrink-0">
+              <ListChecks className="w-5 h-5 text-purple-bright" />
+            </div>
+            <div>
+              <h3 className="font-display font-semibold">Practice Quiz</h3>
+              <p className="text-xs text-white/40">Timed, with a full review at the end</p>
+            </div>
+          </div>
+          <Link to={`/app/topics/${numericTopicId}/quiz`}>
+            <Button>Start Quiz</Button>
+          </Link>
+        </Card>
       </motion.div>
+
       <motion.div variants={fadeUp}>
         <TutorChat topicId={numericTopicId} />
       </motion.div>

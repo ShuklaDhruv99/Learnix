@@ -20,6 +20,7 @@ import Profile from './pages/Profile'
 import Settings from './pages/Settings'
 import SyllabusUpload from './pages/SyllabusUpload'
 import TopicPage from './pages/TopicPage'
+import QuizPage from './pages/QuizPage'
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="/app/settings" element={<Settings />} />
             <Route path="/app/syllabus-upload" element={<SyllabusUpload />} />
             <Route path="/app/topics/:topicId" element={<TopicPage />} />
+            <Route path="/app/topics/:topicId/quiz" element={<QuizPage />} />
           </Route>
         </Routes>
       </BrowserRouter>
